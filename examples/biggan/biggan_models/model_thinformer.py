@@ -35,9 +35,9 @@ PRETRAINED_MODEL_ARCHIVE_MAP = {
 }
 
 PRETRAINED_CONFIG_ARCHIVE_MAP = {
-    'biggan-deep-128': "https://s3.amazonaws.com/models.huggingface.co/biggan/biggan-deep-128-config.json",
-    'biggan-deep-256': "https://s3.amazonaws.com/models.huggingface.co/biggan/biggan-deep-256-config.json",
-    'biggan-deep-512': "https://s3.amazonaws.com/models.huggingface.co/biggan/biggan-deep-512-config.json",
+    'biggan-deep-128': "examples/biggan/biggan_models/configs/biggan-deep-128-config.json",
+    'biggan-deep-256': "examples/biggan/biggan_models/configs/biggan-deep-256-config.json",
+    'biggan-deep-512': "examples/biggan/biggan_models/configs/biggan-deep-512-config.json",
 }
 
 WEIGHTS_NAME = 'pytorch_model.bin'
@@ -229,7 +229,7 @@ class Generator(nn.Module):
         layers = []
         for i, layer in enumerate(config.layers):
             if i == config.attention_layer_position:
-                layers.append(ThinformerSelfAttn(ch*layer[1], eps=config.eps))
+                layers.append(ThinformerSelfAttn(ch*layer[1], eps=config.eps, g=config.g))
             layers.append(GenBlock(ch*layer[1],
                                    ch*layer[2],
                                    condition_vector_dim,
