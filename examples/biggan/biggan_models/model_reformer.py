@@ -24,11 +24,11 @@ import torch.nn.functional as F
 from .config import BigGANConfig
 from .file_utils import cached_path
 
-# NOTE: original imports
+# NOTE (Albert): original imports
 # import sys
 # sys.path.append("../")
 # from Reformer import ReformerAttention
-# NOTE: The original imports have been modified to import correct dependencies
+# NOTE (Albert): The original imports have been modified to import correct dependencies
 from biggan_models.attention.reformer import ReformerAttention
 
 logger = logging.getLogger(__name__)

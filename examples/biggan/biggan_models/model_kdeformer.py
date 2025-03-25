@@ -24,11 +24,11 @@ import torch.nn.functional as F
 from .config import BigGANConfig
 from .file_utils import cached_path
 
-# NOTE: original imports
+# NOTE (Albert): original imports
 # import sys
 # sys.path.append("../")
 # from KDEformer import KDEformer
-# NOTE: The original imports have been modified to import correct dependencies
+# NOTE (Albert): The original imports have been modified to import correct dependencies
 from biggan_models.attention.kdeformer import RobustAttention
 
 logger = logging.getLogger(__name__)
@@ -85,11 +85,13 @@ class KDEformerSelfAttn(nn.Module):
         key = key.unsqueeze(0).transpose(1,2)
         value = value.unsqueeze(0).transpose(1,2)
 
+        # NOTE (Albert): original implementation
         # att_ham = KDEformer(rep_D=1, num_projs=7, Bucket_size=64, sample_size=128).forward(
         #     key=key.double(),
         #     query=query.double(),
         #     value=value.double(),
         # )
+        # NOTE (Albert): modified implementation with correct dependencies
         att_ham = RobustAttention(dim_heads=1, num_projs=7, Bucket_size=64, sample_size=128).forward(
             key=key.double(),
             query=query.double(),
