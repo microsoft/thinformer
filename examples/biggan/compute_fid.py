@@ -103,9 +103,6 @@ def calculate_statistics_from_folder(data_root, transforms = transforms.ToTensor
     """
 
     dataset = torchvision.datasets.ImageFolder(data_root, transform=transforms)
-    if True:
-        # Limit dataset to first 10k samples
-        dataset = torch.utils.data.Subset(dataset, range(min(10000, len(dataset))))
     dataloader = DataLoader(dataset, batch_size=batch_size, shuffle=False, num_workers=num_workers)
     return calculate_statistics(dataloader, dims=dims, device=device)
 
@@ -119,6 +116,9 @@ def calculate_imagenet_statistics(data_root = None, image_size = 128, batch_size
     """
     
     image_net = load_imagenet(data_root, image_size, batch_size=batch_size)
+    if True:
+        # Limit dataset to first 10k samples
+        image_net = torch.utils.data.Subset(image_net, range(min(10000, len(image_net))))
     dataloader = DataLoader(image_net, batch_size=batch_size, shuffle=False, num_workers=num_workers)
 
     mu, sigma = calculate_statistics(dataloader, device=device)
