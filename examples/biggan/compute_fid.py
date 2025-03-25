@@ -103,6 +103,9 @@ def calculate_statistics_from_folder(data_root, transforms = transforms.ToTensor
     """
 
     dataset = torchvision.datasets.ImageFolder(data_root, transform=transforms)
+    if True:
+        # Limit dataset to first 10k samples
+        dataset = torch.utils.data.Subset(dataset, range(min(10000, len(dataset))))
     dataloader = DataLoader(dataset, batch_size=batch_size, shuffle=False, num_workers=num_workers)
     return calculate_statistics(dataloader, dims=dims, device=device)
 
@@ -170,10 +173,11 @@ class CenterCropLongEdge(object):
 
 
 if __name__ == '__main__':
+    import os
     from argparse import ArgumentParser
     parser = ArgumentParser()
     parser.add_argument('--dataset_path', '-dp', type=str, default='data',
-                        help="directory containing ImageNet val folder",)
+                        help="path to the ImageNet val folder",)
     parser.add_argument(
         "--device",
         "-d",
@@ -188,6 +192,7 @@ if __name__ == '__main__':
     print(f"Device: {device}")
 
     print("Calculating ImageNet statistics...")
+    os.makedirs("scores", exist_ok=True)
     # TODO: skip this step if the statistics file already exists
     mu, sigma = calculate_imagenet_statistics(data_root=dataset_path, device=device)
 
