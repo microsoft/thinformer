@@ -8,6 +8,7 @@ from biggan_models.model import BigGAN
 from biggan_models.model_performer import PerformerBigGAN
 from biggan_models.model_reformer import ReformerBigGAN
 from biggan_models.model_kdeformer import KDEformerBigGAN
+from biggan_models.model_thinformer import ThinformerBigGAN
 from biggan_models.utils import one_hot_from_int, truncated_noise_sample, save_as_images
 
 
@@ -19,7 +20,7 @@ def get_args():
     parser.add_argument("--data_per_class",type=int, default=1)
     parser.add_argument("--seed",type=int, default=123)
     parser.add_argument("--batch_size",type=int, default=32)
-    parser.add_argument("--attention",type=str, default='exact', choices=['exact', 'kdeformer', 'performer', 'reformer', 'sblocal'])
+    parser.add_argument("--attention",type=str, default='exact', choices=['exact', 'kdeformer', 'performer', 'reformer', 'sblocal', 'thinformer'])
     parser.add_argument("--truncation",type=float, default=0.4)
     parser.add_argument("--no_store",action='store_true')    
     return parser.parse_args()
@@ -58,6 +59,8 @@ def main():
         model = ReformerBigGAN.from_pretrained(model_name)
     elif attention == 'sblocal':
         model = SBlocalBigGAN.from_pretrained(model_name)
+    elif attention == 'thinformer':
+        model = ThinformerBigGAN.from_pretrained(model_name)
     else:
         raise NotImplementedError("Invalid attention option")
 

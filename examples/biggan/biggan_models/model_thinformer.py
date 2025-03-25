@@ -85,8 +85,8 @@ class ThinformerSelfAttn(nn.Module):
             key=key.double(),
             query=query.double(),
             value=value.double(),
-        )
-        return att_ham.squeeze(0).transpose(1,2)
+        )[0]
+        return att_ham.squeeze(0).transpose(1,2).permute(2, 1, 0)
 
     def forward(self, x):
         _, ch, h, w = x.size()
