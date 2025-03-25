@@ -170,15 +170,26 @@ class CenterCropLongEdge(object):
 
 
 if __name__ == '__main__':
-    # NOTE (Albert): add argument parser to handle data path
     from argparse import ArgumentParser
     parser = ArgumentParser()
-    parser.add_argument('--dataset_path', '-dp', type=str, default='data')
+    parser.add_argument('--dataset_path', '-dp', type=str, default='data',
+                        help="directory containing ImageNet val folder",)
+    parser.add_argument(
+        "--device",
+        "-d",
+        default="cuda",
+        help="PyTorch device: e.g., cuda or cpu",
+        choices=["cpu", "cuda"],
+    )
     args = parser.parse_args()
     dataset_path = args.dataset_path
     print(f"Dataset path: {dataset_path}")
+    device = args.device
+    print(f"Device: {device}")
 
-    mu, sigma = calculate_imagenet_statistics(data_root=dataset_path)
+    print("Calculating ImageNet statistics...")
+    # TODO: skip this step if the statistics file already exists
+    mu, sigma = calculate_imagenet_statistics(data_root=dataset_path, device=device)
 
     # attention_method = 'ADD_ME'
     # fid, IS_mu, IS_sigma = calculate_fid_score('./data/generations/biggan_deep_512/'+attention_method, './data/scores/imagenet_statistics.npz')
