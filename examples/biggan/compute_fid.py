@@ -51,7 +51,7 @@ def get_activations(dataloader, dims=2048, device='cpu',
     return activations
 
 
-def calculate_fid_score(generations_root, data_statistics):
+def calculate_fid_score(generations_root, data_statistics, device='cuda'):
     """
     Image folder of generated images and data statistics of real images
     """
@@ -71,7 +71,7 @@ def calculate_fid_score(generations_root, data_statistics):
 
     generated_dataset = torchvision.datasets.ImageFolder(root=generations_root, transform=transform)
     generated_loader = DataLoader(generated_dataset, batch_size=32, shuffle=False)
-    mu, sigma = calculate_statistics(generated_loader)
+    mu, sigma = calculate_statistics(generated_loader, device=device)
 
     fid = calculate_frechet_distance(mu, sigma, data_statistics['mu'], data_statistics['sigma'])
 
@@ -116,13 +116,13 @@ def calculate_imagenet_statistics(data_root = None, image_size = 128, batch_size
     """
     
     image_net = load_imagenet(data_root, image_size, batch_size=batch_size)
-    if True:
+    if False:
         # Limit dataset to first 10k samples
         image_net = torch.utils.data.Subset(image_net, range(min(10000, len(image_net))))
     dataloader = DataLoader(image_net, batch_size=batch_size, shuffle=False, num_workers=num_workers)
 
     mu, sigma = calculate_statistics(dataloader, device=device)
-    np.savez_compressed('./scores/imagenet_statistics.npz', mu=mu, sigma=sigma)
+    # np.savez_compressed('./scores/imagenet_statistics.npz', mu=mu, sigma=sigma)
 
     return mu, sigma
 
@@ -178,6 +178,10 @@ if __name__ == '__main__':
     parser = ArgumentParser()
     parser.add_argument('--dataset_path', '-dp', type=str, default='data',
                         help="path to the ImageNet val folder",)
+    parser.add_argument('--output_path', '-op', type=str, default='out',
+                        help="path to the output folder",)
+    parser.add_argument('--method', '-m', type=str, default='exact',
+                        help="attention method to evaluate",)
     parser.add_argument(
         "--device",
         "-d",
@@ -190,22 +194,31 @@ if __name__ == '__main__':
     print(f"Dataset path: {dataset_path}")
     device = args.device
     print(f"Device: {device}")
+    attention_method = args.method
+    print(f"Method: {attention_method}")
+    output_path = args.output_path
+    print(f"Output path: {output_path}")
 
-    print("Calculating ImageNet statistics...")
-    os.makedirs("scores", exist_ok=True)
-    # TODO: skip this step if the statistics file already exists
-    mu, sigma = calculate_imagenet_statistics(data_root=dataset_path, device=device)
+    scores_dir = os.path.join(output_path, 'scores')
+    scores_path = os.path.join(scores_dir, 'imagenet_statistics.npz')
+    if not os.path.exists(scores_path):
+        print("Calculating ImageNet statistics...")
+        os.makedirs(scores_dir, exist_ok=True)
+        mu, sigma = calculate_imagenet_statistics(data_root=dataset_path, device=device)
+        print(f"Saving ImageNet statistics to {scores_path}...")
+        np.savez_compressed(scores_path, mu=mu, sigma=sigma)
 
     # attention_method = 'ADD_ME'
-    # fid, IS_mu, IS_sigma = calculate_fid_score('./data/generations/biggan_deep_512/'+attention_method, './data/scores/imagenet_statistics.npz')
+    generations_dir = os.path.join(output_path, 'generations', 'biggan_deep_512', attention_method)
+    fid, IS_mu, IS_sigma = calculate_fid_score(generations_dir, scores_path, device=device)
     
-    # print(fid)
+    print(fid)
 
-    # with open(f'./examples/bigGAN/scores/fid_scores.txt', 'a') as f:
-    #     #f.seek(0, 2)  # Move the cursor to the end of the file
-    #     f.write('\n')
-    #     f.write(f'Attention Method: {attention_method}\n')
-    #     f.write(f'FID: {fid}\n')
-    #     # f.write(f'IS_mu: {IS_mu}\n')
-    #     # f.write(f'IS_sigma: {IS_sigma}\n')
+    with open(os.path.join(scores_dir, 'fid_scores.txt'), 'a') as f:
+        #f.seek(0, 2)  # Move the cursor to the end of the file
+        f.write('\n')
+        f.write(f'Attention Method: {attention_method}\n')
+        f.write(f'FID: {fid}\n')
+        f.write(f'IS_mu: {IS_mu}\n')
+        f.write(f'IS_sigma: {IS_sigma}\n')
     
