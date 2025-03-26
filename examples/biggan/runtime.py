@@ -30,9 +30,6 @@ from biggan_models.utils import one_hot_from_int, truncated_noise_sample, save_a
 
 parser = get_base_parser()
 parser.add_argument(
-    "--method", "-m", default="thinformer", type=str, help="attention method"
-)
-parser.add_argument(
     "--batch_number", "-bn", default=1, type=int, help="batch number >= 1"
 )
 parser.add_argument(
