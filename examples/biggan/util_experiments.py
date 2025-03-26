@@ -7,6 +7,7 @@ from biggan_models.model import BigGAN
 from biggan_models.model_performer import PerformerBigGAN
 from biggan_models.model_reformer import ReformerBigGAN
 from biggan_models.model_kdeformer import KDEformerBigGAN
+from biggan_models.model_kdeformer_old import KDEformerBigGAN as KDEformerOldBigGAN
 from biggan_models.model_thinformer import ThinformerBigGAN
 
 CHECKPOINTPATH = "checkpoints"
@@ -58,7 +59,7 @@ def get_base_parser() -> argparse.ArgumentParser:
     parser.add_argument("--num_outputs",type=int, default=-1)
     parser.add_argument("--data_per_class",type=int, default=1)
     parser.add_argument("--batch_size",type=int, default=32)
-    parser.add_argument("--attention",type=str, default='exact', choices=['exact', 'kdeformer', 'performer', 'reformer', 'sblocal', 'thinformer'])
+    parser.add_argument("--attention",type=str, default='exact', choices=['exact', 'kdeformer', 'performer', 'reformer', 'sblocal', 'thinformer', 'kdeformer-old'])
     parser.add_argument("--truncation",type=float, default=0.4)
     parser.add_argument("--no_store",action='store_true')    
     return parser
@@ -121,6 +122,8 @@ def get_model(
         model = SBlocalBigGAN.from_pretrained(model_name)
     elif attention == 'thinformer':
         model = ThinformerBigGAN.from_pretrained(model_name)
+    elif attention == 'kdeformer-old':
+        model = KDEformerOldBigGAN.from_pretrained(model_name)
     else:
         raise NotImplementedError("Invalid attention option")
     return model

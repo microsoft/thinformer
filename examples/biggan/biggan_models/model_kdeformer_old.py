@@ -75,6 +75,7 @@ class KDEformerSelfAttn(nn.Module):
         self.maxpool = nn.MaxPool2d(2, stride=2, padding=0)
         self.softmax  = nn.Softmax(dim=-1)
         self.gamma = nn.Parameter(torch.zeros(1))
+        self.attn = RobustAttention(1, num_projs=7, Bucket_size=64, sample_size=128)
         
     def fastformer(self, query, key, value):
         
@@ -92,12 +93,18 @@ class KDEformerSelfAttn(nn.Module):
         #     value=value.double(),
         # )
         # NOTE (Albert): modified implementation with correct dependencies
-        att_ham = RobustAttention(dim_heads=1, num_projs=7, Bucket_size=64, sample_size=128).forward(
+        # att_ham = RobustAttention(1, num_projs=7, Bucket_size=64, sample_size=128).forward(
+        #     key=key.double(),
+        #     query=query.double(),
+        #     value=value.double(),
+        # )
+        att_ham = self.attn(
             key=key.double(),
             query=query.double(),
             value=value.double(),
-        )
-        return att_ham.squeeze(0).transpose(1,2)
+        )[0]
+
+        return att_ham.squeeze(0).transpose(1,2).permute(2, 1, 0)
 
     def forward(self, x):
         _, ch, h, w = x.size()
