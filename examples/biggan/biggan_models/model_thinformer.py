@@ -37,7 +37,7 @@ PRETRAINED_MODEL_ARCHIVE_MAP = {
 PRETRAINED_CONFIG_ARCHIVE_MAP = {
     'biggan-deep-128': "examples/biggan/biggan_models/configs/biggan-deep-128-config.json",
     'biggan-deep-256': "examples/biggan/biggan_models/configs/biggan-deep-256-config.json",
-    'biggan-deep-512': "/n/home01/acarrell/workplace/thinformer/examples/biggan/biggan_models/configs/biggan-deep-512-config.json",
+    'biggan-deep-512': "examples/biggan/biggan_models/configs/biggan-deep-512-config.json",
 }
 
 WEIGHTS_NAME = 'pytorch_model.bin'

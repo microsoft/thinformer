@@ -41,7 +41,6 @@ parser.add_argument(
 )
 args, opt = parser.parse_known_args()
 
-method = args.method
 method = args.attention
 device = args.device if args.device else torch.device
 batch_size = args.batch_size
