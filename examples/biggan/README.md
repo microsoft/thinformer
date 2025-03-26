@@ -33,3 +33,9 @@ python compute_fid.py -dp PATH/TO/IMAGENET/val
 ```bash
 python demo_inception_scores.py  # TODO (Albert)
 ```
+
+5. Compute runtimes:
+```bash
+python runtime.py --attention=METHOD
+```
+Optional: `--num_runs=RUNS` to get +- std on timings.
