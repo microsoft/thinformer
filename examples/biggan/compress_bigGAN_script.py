@@ -10,6 +10,8 @@ from biggan_models.model import BigGAN
 from biggan_models.model_kdeformer import KDEformerBigGAN
 from biggan_models.utils import one_hot_from_int, truncated_noise_sample, save_as_images_by_class
 
+from util_experiments import get_model
+
 def get_args():
     parser = argparse.ArgumentParser()
     # Model Arguments
@@ -51,13 +53,8 @@ def main():
     truncation = args.truncation
 
     # Load pre-trained model tokenizer (vocabulary)
-    if attention == 'exact':
-        model = BigGAN.from_pretrained(model_name)
-    elif attention == 'kdeformer':
-        model = KDEformerBigGAN.from_pretrained(model_name)
-    else:
-        raise NotImplementedError("Invalid attention option")
-
+    model = get_model(model_name, attention)
+    
     print(model.__class__)
 
     # Prepare a input
