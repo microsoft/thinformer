@@ -10,9 +10,11 @@ from __future__ import absolute_import, division, print_function, unicode_litera
 import json
 import logging
 from io import BytesIO
+import os
 
 import numpy as np
 from scipy.stats import truncnorm
+from tqdm import tqdm
 
 logger = logging.getLogger(__name__)
 
@@ -71,13 +73,44 @@ def save_as_images(obj, file_name='output'):
     tic = time.time()
     img = convert_to_images(obj)
     print(f"time: {time.time() - tic:.3f} sec")
-    from tqdm import tqdm
 
     for i, out in tqdm(enumerate(img)):
         current_file_name = file_name + '_%d.png' % i
         logger.info("Saving image to {}".format(current_file_name))
         out.save(current_file_name, 'png')
 
+def save_as_images_by_class(obj, labels, file_name='output'):
+    """Convert and save an output tensor from BigGAN into class-specific directories of images.
+    
+    Params:
+        obj: tensor or numpy array of shape (batch_size, channels, height, width)
+        labels: tensor or numpy array of shape (batch_size,) containing class labels for each sample
+        file_name: path and beginning of filename to save.
+            Images will be saved in directories named after their class labels, e.g., `file_name/class_label/image_{image_number}.png`.
+    """
+    # Convert the tensor to images
+    import time
+    tic = time.time()
+    img = convert_to_images(obj)
+    print(f"Image conversion time: {time.time() - tic:.3f} sec")
+
+    # Ensure labels and images have the same number of samples
+    assert len(img) == len(labels), "The number of images must match the number of labels."
+
+    # Save each image in its corresponding class directory
+    for i, (out, label) in tqdm(enumerate(zip(img, labels)), total=len(img)):
+        class_dir = os.path.join(file_name, str(label))  # Directory named after the class label
+        if not os.path.exists(class_dir):
+            os.makedirs(class_dir)
+
+        # Count the number of existing images in the class directory
+        existing_images = [f for f in os.listdir(class_dir) if f.endswith('.png')]
+        image_count = len(existing_images)
+        
+        # Create the file name with the count
+        current_file_name = os.path.join(class_dir, f'image_{image_count + 1}.png')
+        logger.info("Saving image to {}".format(current_file_name))
+        out.save(current_file_name, 'png')
 
 def display_in_terminal(obj):
     """ Convert and display an output tensor from BigGAN in the terminal.
