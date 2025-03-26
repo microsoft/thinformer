@@ -57,8 +57,7 @@ def get_base_parser() -> argparse.ArgumentParser:
     parser.add_argument("--num_classes",type=int, default=1000)
     parser.add_argument("--num_outputs",type=int, default=-1)
     parser.add_argument("--data_per_class",type=int, default=1)
-    #parser.add_argument("--seed",type=int, default=123)
-    #parser.add_argument("--batch_size",type=int, default=32)
+    parser.add_argument("--batch_size",type=int, default=32)
     parser.add_argument("--attention",type=str, default='exact', choices=['exact', 'kdeformer', 'performer', 'reformer', 'sblocal', 'thinformer'])
     parser.add_argument("--truncation",type=float, default=0.4)
     parser.add_argument("--no_store",action='store_true')    
@@ -135,6 +134,7 @@ def get_modules(model: torch.nn.Module) -> dict:
         "generator": model.generator,
         "embed": model.embeddings,
         "attention": model.generator.layers[8],
+        "attention-matrix": model.generator.layers[8].attn,
         "model": model
     }
     return modules

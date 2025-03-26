@@ -127,7 +127,7 @@ for name, module in modules.items():
     ends[name] = torch.cuda.Event(enable_timing=True)
     module.register_forward_hook(partial(time_post, name))
 
-print(f'module attention {modules["attention"]}')
+print(f'module attention matrix {modules["attention-matrix"]}')
 
 print("Performing warm-up runs...")
 num_warmup_runs = 10

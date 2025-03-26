@@ -37,7 +37,7 @@ PRETRAINED_MODEL_ARCHIVE_MAP = {
 PRETRAINED_CONFIG_ARCHIVE_MAP = {
     'biggan-deep-128': "examples/biggan/biggan_models/configs/biggan-deep-128-config.json",
     'biggan-deep-256': "examples/biggan/biggan_models/configs/biggan-deep-256-config.json",
-    'biggan-deep-512': "examples/biggan/biggan_models/configs/biggan-deep-512-config.json",
+    'biggan-deep-512': "/n/home01/acarrell/workplace/thinformer/examples/biggan/biggan_models/configs/biggan-deep-512-config.json",
 }
 
 WEIGHTS_NAME = 'pytorch_model.bin'
@@ -71,6 +71,7 @@ class ThinformerSelfAttn(nn.Module):
         self.softmax  = nn.Softmax(dim=-1)
         self.gamma = nn.Parameter(torch.zeros(1))
         self.g = g
+        self.attn = ThinformerAttention(g=self.g)
         
     def fastformer(self, query, key, value):
         
@@ -81,7 +82,7 @@ class ThinformerSelfAttn(nn.Module):
         key = key.unsqueeze(0).transpose(1,2)
         value = value.unsqueeze(0).transpose(1,2)
 
-        att_ham = ThinformerAttention(g=self.g).forward(
+        att_ham = self.attn(
             key=key.double(),
             query=query.double(),
             value=value.double(),

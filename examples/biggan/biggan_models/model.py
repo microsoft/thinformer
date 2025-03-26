@@ -51,6 +51,16 @@ def snlinear(eps=1e-12, **kwargs):
 def sn_embedding(eps=1e-12, **kwargs):
     return nn.utils.spectral_norm(nn.Embedding(**kwargs), eps=eps)
 
+class Attn(nn.Module):
+    def __init__(self):
+        super(Attn, self).__init__()
+        self.softmax = nn.Softmax(dim=-1)
+
+    def forward(self, theta, phi):
+        attn = torch.bmm(theta.permute(0, 2, 1), phi)
+        attn = self.softmax(attn)
+        return attn
+
 class SelfAttn(nn.Module):
     """ Self attention Layer"""
     def __init__(self, in_channels, eps=1e-12):
@@ -66,6 +76,7 @@ class SelfAttn(nn.Module):
                                          kernel_size=1, bias=False, eps=eps)
         self.maxpool = nn.MaxPool2d(2, stride=2, padding=0)
         self.softmax  = nn.Softmax(dim=-1)
+        self.attn = Attn()
         self.gamma = nn.Parameter(torch.zeros(1))
 
     def forward(self, x):
@@ -78,8 +89,7 @@ class SelfAttn(nn.Module):
         phi = self.maxpool(phi)
         phi = phi.view(-1, ch//8, h*w//4)
         # Attn map
-        attn = torch.bmm(theta.permute(0, 2, 1), phi)
-        attn = self.softmax(attn)
+        attn = self.attn(theta, phi)
         # g path
         g = self.snconv1x1_g(x)
         g = self.maxpool(g)
