@@ -20,7 +20,8 @@ def get_base_parser() -> argparse.ArgumentParser:
     parser.add_argument(
         "--seed",
         "-s",
-        default=1,
+        # default=1,
+        default=123,
         type=int,
         help="random seed for both pytorch and thinformer",
     )
@@ -62,6 +63,9 @@ def get_base_parser() -> argparse.ArgumentParser:
     parser.add_argument("--attention",type=str, default='exact', choices=['exact', 'kdeformer', 'performer', 'reformer', 'sblocal', 'thinformer', 'kdeformer-old'])
     parser.add_argument("--truncation",type=float, default=0.4)
     parser.add_argument("--no_store",action='store_true')    
+    parser.add_argument("--g", "-g", type = int, default=None, 
+                        help="KH-Compress oversampling factor" \
+                            "If None, use the default value in the model config JSON file")
     return parser
 
 
@@ -106,10 +110,17 @@ def load_checkpoint(
 
 # Load model using specified attention method
 def get_model(
-    model_name: str, attention: str
+    model_name: str, attention: str, g: int | None = None
 ) -> torch.nn.Module:
-    """Load the T2T-ViT model with the specified attention methods."""
-        # Load pre-trained model tokenizer (vocabulary)
+    """Load the T2T-ViT model with the specified attention methods.
+    Args:
+        model_name: str, name of the model to load
+        attention: str, attention method to use
+        g: int, oversampling factor for KH-Compress
+    Returns:
+        model: torch.nn.Module, the loaded model
+    """
+    # Load pre-trained model tokenizer (vocabulary)
     if attention == 'exact':
         model = BigGAN.from_pretrained(model_name)
     elif attention == 'kdeformer':

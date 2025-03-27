@@ -13,29 +13,38 @@ from biggan_models.utils import one_hot_from_int, truncated_noise_sample, save_a
 from util_experiments import get_model
 
 def get_args():
-    parser = argparse.ArgumentParser()
-    # Model Arguments
-    parser.add_argument("--model_name",type=str, default='biggan-deep-512')
-    parser.add_argument("--truncation",type=float, default=0.4)
+    if False:
+        parser = argparse.ArgumentParser()
+        # Model Arguments
+        parser.add_argument("--model_name",type=str, default='biggan-deep-512')
+        parser.add_argument("--truncation",type=float, default=0.4)
 
-    # Run Arguments
-    parser.add_argument("--batch_size",type=int, default=32)
-    parser.add_argument("--seed",type=int, default=123)
+        # Run Arguments
+        parser.add_argument("--batch_size",type=int, default=32)
+        parser.add_argument("--seed",type=int, default=123)
 
-    # Data Arguments
-    parser.add_argument("--num_classes",type=int, default=1000)
-    parser.add_argument("--num_outputs",type=int, default=-1)
-    parser.add_argument("--data_per_class",type=int, default=5)
-    
-    # Attention Arguments
-    parser.add_argument("--attention",type=str, default='kdeformer', choices=['exact', 'kdeformer', 'performer', 'reformer', 'sblocal', 'thinformer', 'kdeformer-old'])
-    parser.add_argument("--kernel", type = str, default = "KV")
-    parser.add_argument("--alpha", type = float, default=0.5)
-    parser.add_argument("--beta", type = float, default=0.5)
+        # Data Arguments
+        parser.add_argument("--num_classes",type=int, default=1000)
+        parser.add_argument("--num_outputs",type=int, default=-1)
+        parser.add_argument("--data_per_class",type=int, default=5)
+        
+        # Attention Arguments
+        parser.add_argument("--attention",type=str, default='kdeformer', choices=['exact', 'kdeformer', 'performer', 'reformer', 'sblocal', 'thinformer', 'kdeformer-old'])
+        parser.add_argument("--kernel", type = str, default = "KV")
+        parser.add_argument("--alpha", type = float, default=0.5)
+        parser.add_argument("--beta", type = float, default=0.5)
 
-    parser.add_argument("--no_store", action='store_true')
-    parser.add_argument("--path", type = str, default = "./data/generations/")
-    parser.add_argument("--fid", type = bool, default=False)
+        parser.add_argument("--no_store", action='store_true')
+        parser.add_argument("--path", type = str, default = "./data/generations/")
+        parser.add_argument("--fid", type = bool, default=False)
+    else:
+        from util_experiments import get_base_parser
+        parser = get_base_parser()
+        parser.add_argument("--kernel", type = str, default = "KV")
+        parser.add_argument("--alpha", type = float, default=0.5)
+        parser.add_argument("--beta", type = float, default=0.5)
+        parser.add_argument("--path", type = str, default = "./data/generations/")
+        parser.add_argument("--fid", type = bool, default=False)
     return parser.parse_args()
 
 @torch.no_grad()
@@ -76,6 +85,9 @@ def main():
         class_vector = class_vector.to('cuda')
         model = model.to('cuda')
 
+    print(f"Setting torch random seed to {args.seed}")
+    torch.manual_seed(args.seed)
+    torch.cuda.manual_seed_all(args.seed)
     
     model.eval()
     time_generations = []
@@ -107,10 +119,10 @@ def main():
         print(f"generation time : {time_generation:.4f} sec")
 
         if not args.no_store:  
-            output_path = args.path + f"{model_name.replace('-','_')}/{attention}/{args.kernel}_{args.alpha}_{args.beta}/"
-            #output_path = args.path + f"{model_name.replace('-','_')}/{attention}/"
-            if not os.path.exists(output_path):
-                os.makedirs(output_path)
+            generations_dir = os.path.join(args.output_path, "generations")
+            os.makedirs(generations_dir, exist_ok=True)
+            output_path = os.path.join(generations_dir, f"{model_name.replace('-','_')}", attention, f"{args.kernel}_{args.alpha}_{args.beta}")
+            os.makedirs(output_path, exist_ok=True)
 
             tic = time.time()
             print("saving images....")
