@@ -56,9 +56,10 @@ class Attn(nn.Module):
         super(Attn, self).__init__()
         self.softmax = nn.Softmax(dim=-1)
 
-    def forward(self, theta, phi):
+    def forward(self, theta, phi, g):
         attn = torch.bmm(theta.permute(0, 2, 1), phi)
         attn = self.softmax(attn)
+        attn = torch.bmm(g, attn.permute(0, 2, 1))
         return attn
 
 class SelfAttn(nn.Module):
@@ -88,14 +89,13 @@ class SelfAttn(nn.Module):
         phi = self.snconv1x1_phi(x)
         phi = self.maxpool(phi)
         phi = phi.view(-1, ch//8, h*w//4)
-        # Attn map
-        attn = self.attn(theta, phi)
         # g path
         g = self.snconv1x1_g(x)
         g = self.maxpool(g)
         g = g.view(-1, ch//2, h*w//4)
+        # Attn map
+        attn_g = self.attn(theta, phi, g)
         # Attn_g - o_conv
-        attn_g = torch.bmm(g, attn.permute(0, 2, 1))
         attn_g = attn_g.view(-1, ch//2, h, w)
         attn_g = self.snconv1x1_o_conv(attn_g)
         # Out
