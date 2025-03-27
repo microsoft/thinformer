@@ -78,6 +78,7 @@ class ThinformerSelfAttn(nn.Module):
         self.softmax  = nn.Softmax(dim=-1)
         self.gamma = nn.Parameter(torch.zeros(1))
         self.g = g
+        logger.warning(f"Setting g to {self.g}")
         self.attn = ThinformerAttention(g=self.g, scale=1)
         
     def fastformer(self, query, key, value):
@@ -277,7 +278,7 @@ class ThinformerBigGAN(nn.Module):
     """BigGAN Generator."""
 
     @classmethod
-    def from_pretrained(cls, pretrained_model_name_or_path, cache_dir=None, *inputs, **kwargs):
+    def from_pretrained(cls, pretrained_model_name_or_path, g=None, cache_dir=None, *inputs, **kwargs):
         if pretrained_model_name_or_path in PRETRAINED_MODEL_ARCHIVE_MAP:
             model_file = PRETRAINED_MODEL_ARCHIVE_MAP[pretrained_model_name_or_path]
             config_file = PRETRAINED_CONFIG_ARCHIVE_MAP[pretrained_model_name_or_path]
@@ -299,6 +300,11 @@ class ThinformerBigGAN(nn.Module):
         # Load config
         config = BigGANConfig.from_json_file(resolved_config_file)
         logger.info("Model config {}".format(config))
+
+        if g is not None:
+            # import pdb; pdb.set_trace()
+            logger.warning(f"Overriding g in config to {g}")
+            config.g = g
 
         # Instantiate model.
         model = cls(config, *inputs, **kwargs)

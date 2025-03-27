@@ -62,7 +62,7 @@ def main():
     truncation = args.truncation
 
     # Load pre-trained model tokenizer (vocabulary)
-    model = get_model(model_name, attention)
+    model = get_model(model_name, attention, g=args.g)
 
     print(model.__class__)
 
