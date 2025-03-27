@@ -16,7 +16,7 @@ output_path = args.output_path
 # Get all the csv files in the scores directory
 scores_dir = os.path.join(output_path, 'scores')
 csv_files = glob(os.path.join(scores_dir, '*.csv'))
-
+print(f"Found {len(csv_files)} csv files in {scores_dir}")
 # Read all the csv files
 df_list = []
 for file in csv_files:
@@ -25,6 +25,10 @@ for file in csv_files:
 
 # Concatenate all the dataframes
 df = pd.concat(df_list)
+
+# import pdb; pdb.set_trace()
+# pivot the dataframe by method and score
+# df = df.pivot(index='method', columns='score', values='value')
 
 # Print the table
 print(tabulate(df, headers='keys', tablefmt='github'))
