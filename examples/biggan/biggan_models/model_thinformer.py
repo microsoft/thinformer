@@ -71,7 +71,7 @@ class ThinformerSelfAttn(nn.Module):
         self.softmax  = nn.Softmax(dim=-1)
         self.gamma = nn.Parameter(torch.zeros(1))
         self.g = g
-        self.attn = ThinformerAttention(g=self.g)
+        self.attn = ThinformerAttention(g=self.g, scale=1)
         
     def fastformer(self, query, key, value):
         
