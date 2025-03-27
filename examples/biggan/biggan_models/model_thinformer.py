@@ -34,10 +34,17 @@ PRETRAINED_MODEL_ARCHIVE_MAP = {
     'biggan-deep-512': "https://s3.amazonaws.com/models.huggingface.co/biggan/biggan-deep-512-pytorch_model.bin",
 }
 
+# NOTE: original configs
+# PRETRAINED_CONFIG_ARCHIVE_MAP = {
+#     'biggan-deep-128': "examples/biggan/biggan_models/configs/biggan-deep-128-config.json",
+#     'biggan-deep-256': "examples/biggan/biggan_models/configs/biggan-deep-256-config.json",
+#     'biggan-deep-512': "examples/biggan/biggan_models/configs/biggan-deep-512-config.json",
+# }
+# NOTE: we assume that the BigGAN experiment will be run from inside the examples/biggan directory
 PRETRAINED_CONFIG_ARCHIVE_MAP = {
-    'biggan-deep-128': "examples/biggan/biggan_models/configs/biggan-deep-128-config.json",
-    'biggan-deep-256': "examples/biggan/biggan_models/configs/biggan-deep-256-config.json",
-    'biggan-deep-512': "examples/biggan/biggan_models/configs/biggan-deep-512-config.json",
+    'biggan-deep-128': "biggan_models/configs/biggan-deep-128-config.json",
+    'biggan-deep-256': "biggan_models/configs/biggan-deep-256-config.json",
+    'biggan-deep-512': "biggan_models/configs/biggan-deep-512-config.json",
 }
 
 WEIGHTS_NAME = 'pytorch_model.bin'
