@@ -116,7 +116,7 @@ def get_model(
     Args:
         model_name: str, name of the model to load
         attention: str, attention method to use
-        g: int, oversampling factor for KH-Compress
+        g: int, oversampling factor for KH-Compress. If None, use the default value in the model config JSON file.
     Returns:
         model: torch.nn.Module, the loaded model
     """
@@ -132,7 +132,7 @@ def get_model(
     elif attention == 'sblocal':
         model = SBlocalBigGAN.from_pretrained(model_name)
     elif attention == 'thinformer':
-        model = ThinformerBigGAN.from_pretrained(model_name)
+        model = ThinformerBigGAN.from_pretrained(model_name, g=g)
     elif attention == 'kdeformer-old':
         model = KDEformerOldBigGAN.from_pretrained(model_name)
     else:
