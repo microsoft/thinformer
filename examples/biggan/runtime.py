@@ -54,10 +54,11 @@ attention = args.attention
 truncation = args.truncation
 num_classes = args.num_classes
 data_per_class = args.data_per_class
+g = args.g
 
 print("Loading model...")
 dtype = torch.float16 if args.fp16 else torch.float32
-model = get_model(model_name, attention)
+model = get_model(model_name, attention, g=g)
 print(f'type(model): {type(model)}')
 
 # quit()
