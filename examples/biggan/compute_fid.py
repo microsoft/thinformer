@@ -187,28 +187,16 @@ class CenterCropLongEdge(object):
 
 if __name__ == '__main__':
     import os
-    from argparse import ArgumentParser
     import pandas as pd
-    parser = ArgumentParser()
-    parser.add_argument('--dataset_path', '-dp', type=str, default='data',
-                        help="path to the ImageNet val folder",)
-    parser.add_argument('--output_path', '-op', type=str, default='out',
-                        help="path to the output folder",)
-    parser.add_argument('--method', '-m', type=str, default='exact',
-                        help="attention method to evaluate",)
-    parser.add_argument(
-        "--device",
-        "-d",
-        default="cuda",
-        help="PyTorch device: e.g., cuda or cpu",
-        choices=["cpu", "cuda"],
-    )
+    from util_experiments import get_base_parser
+
+    parser = get_base_parser()
     args = parser.parse_args()
     dataset_path = args.dataset_path
     print(f"Dataset path: {dataset_path}")
     device = args.device
     print(f"Device: {device}")
-    attention_method = args.method
+    attention_method = args.attention
     print(f"Method: {attention_method}")
     output_path = args.output_path
     print(f"Output path: {output_path}")
@@ -224,6 +212,7 @@ if __name__ == '__main__':
 
     # attention_method = 'ADD_ME'
     generations_dir = os.path.join(output_path, 'generations', 'biggan_deep_512', attention_method)
+    # NOTE (Albert): not sure what IS stands for. I think it should this just be mu, sigma
     fid, IS_mu, IS_sigma = calculate_fid_score(generations_dir, scores_path, device=device)
     
     # print(fid)
@@ -238,10 +227,10 @@ if __name__ == '__main__':
     
     # NOTE (Albert): instead of printing to txt file, we save to a csv file
     df = pd.DataFrame(data={
-        'attention_method': [attention_method], 
+        'method': [attention_method], 
         'fid': [fid], 
-        # 'IS_mu': [IS_mu], 
-        # 'IS_sigma': [IS_sigma]
+        'score': ['fid']
     })
     save_path = os.path.join(scores_dir, f'fid-{attention_method}.csv')
+    print(f"Saving FID scores to {save_path}...")
     df.to_csv(save_path, index=False)
