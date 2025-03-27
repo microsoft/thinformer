@@ -10,31 +10,28 @@ pip install pytorch-fid
 
 Please follow the steps below to recreate the BigGAN experiment: 
 
-1. Compute ImageNet statistics:
+1. Generate images:
 
 ```bash
-python compute_fid.py -dp DATASET_PATH
+python compress_bigGAN_script.py --num_classes 1000 --data_per_class 5 --beta 0.5 --attention METHOD --path OUTPUT_PATH/generations/
 ```
 
-2. Generate images:
+2. Compute FID scores:
+
+> \[!NOTE\]
+> This following script expects a file containing the ImageNet statistics at `OUTPUT_PATH/scores/imagenet_statistics.npz`. If this file doesn't exist, it will be created.
 
 ```bash
-python compress_bigGAN_script.py --num_classes 1000 --data_per_class 5 --beta 0.5 --attention METHOD
+python compute_fid.py -dp PATH/TO/IMAGENET/val -op OUTPUT_PATH --method METHOD
 ```
 
-3. Compute FID scores:
-
-```bash
-python compute_fid.py -dp PATH/TO/IMAGENET/val
-```
-
-4. Compute Inception scores:
+3. Compute Inception scores:
 
 ```bash
 python demo_inception_scores.py  # TODO (Albert)
 ```
 
-5. Compute runtimes:
+4. Compute runtimes:
 ```bash
 python runtime.py --attention=METHOD
 ```
