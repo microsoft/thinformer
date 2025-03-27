@@ -83,9 +83,9 @@ class ThinformerSelfAttn(nn.Module):
         value = value.unsqueeze(0).transpose(1,2)
 
         att_ham = self.attn(
-            key=key.double(),
-            query=query.double(),
-            value=value.double(),
+            key=key,
+            query=query,
+            value=value,
         )[0]
         return att_ham.squeeze(0).transpose(1,2).permute(2, 1, 0)
 
@@ -103,7 +103,7 @@ class ThinformerSelfAttn(nn.Module):
         g = self.maxpool(g)
         g = g.view(-1, ch//2, h*w//4)
         # Attn map  
-        attn_g = self.fastformer(theta, phi, g).float()
+        attn_g = self.fastformer(theta, phi, g)
         # Attn_g - o_conv
         attn_g = attn_g.view(-1, ch//2, h, w)
         attn_g = self.snconv1x1_o_conv(attn_g)
