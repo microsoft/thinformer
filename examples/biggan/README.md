@@ -13,7 +13,7 @@ Please follow the steps below to recreate the BigGAN experiment:
 1. Generate images:
 
 ```bash
-python compress_bigGAN_script.py --num_classes 1000 --data_per_class 5 --beta 0.5 --attention METHOD --path OUTPUT_PATH/generations/
+python compress_bigGAN_script.py --num_classes 1000 --data_per_class 5 --beta 0.5 --attention METHOD -op OUTPUT_PATH
 ```
 
 2. Compute FID scores:
