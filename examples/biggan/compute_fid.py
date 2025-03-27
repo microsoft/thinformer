@@ -116,12 +116,22 @@ def calculate_imagenet_statistics(data_root = None, image_size = 128, batch_size
     """
     
     image_net = load_imagenet(data_root, image_size, batch_size=batch_size)
-    if False:
-        # Limit dataset to first 10k samples
-        image_net = torch.utils.data.Subset(image_net, range(min(10000, len(image_net))))
-    else:
-        # TODO: obtain first 10 samples from each of the 1000 classes
-        raise NotImplementedError("Not implemented")
+    # if False:
+    #     # Limit dataset to first 10k samples
+    #     image_net = torch.utils.data.Subset(image_net, range(min(10000, len(image_net))))
+    # else:
+    #     # TODO: obtain first 10 samples from each of the 1000 classes
+    #     # NOTE: From Claude
+    #     # Get indices for first 10 images from each class
+    #     class_to_idx = image_net.class_to_idx
+    #     selected_indices = []
+    #     for class_name, class_idx in class_to_idx.items():
+    #         # Find all indices for this class
+    #         class_indices = [i for i, (_, label) in enumerate(image_net.samples) if label == class_idx]
+    #         # Take first 10 (or all if less than 10)
+    #         selected_indices.extend(class_indices[:10])
+    #     # Create subset with selected indices
+    #     image_net = torch.utils.data.Subset(image_net, selected_indices)
     dataloader = DataLoader(image_net, batch_size=batch_size, shuffle=False, num_workers=num_workers)
 
     mu, sigma = calculate_statistics(dataloader, device=device)
