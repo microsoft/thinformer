@@ -28,7 +28,7 @@ def get_args():
     parser.add_argument("--data_per_class",type=int, default=5)
     
     # Attention Arguments
-    parser.add_argument("--attention",type=str, default='kdeformer', choices=['exact', 'kdeformer', 'performer', 'reformer', 'sblocal', 'thinformer'])
+    parser.add_argument("--attention",type=str, default='kdeformer', choices=['exact', 'kdeformer', 'performer', 'reformer', 'sblocal', 'thinformer', 'kdeformer-old'])
     parser.add_argument("--kernel", type = str, default = "KV")
     parser.add_argument("--alpha", type = float, default=0.5)
     parser.add_argument("--beta", type = float, default=0.5)
