@@ -193,7 +193,6 @@ if __name__ == '__main__':
     parser = get_base_parser()
     args = parser.parse_args()
     dataset_path = args.dataset_path
-    print(f"Dataset path: {dataset_path}")
     device = args.device
     print(f"Device: {device}")
     attention_method = args.attention
@@ -204,7 +203,7 @@ if __name__ == '__main__':
     scores_dir = os.path.join(output_path, 'scores')
     scores_path = os.path.join(scores_dir, 'imagenet_statistics.npz')
     if not os.path.exists(scores_path):
-        print("Calculating ImageNet statistics...")
+        print(f"Calculating ImageNet statistics using the data from {dataset_path}...")
         os.makedirs(scores_dir, exist_ok=True)
         mu, sigma = calculate_imagenet_statistics(data_root=dataset_path, device=device)
         print(f"Saving ImageNet statistics to {scores_path}...")
@@ -215,7 +214,7 @@ if __name__ == '__main__':
     # NOTE (Albert): not sure what IS stands for. I think it should this just be mu, sigma
     fid, IS_mu, IS_sigma = calculate_fid_score(generations_dir, scores_path, device=device)
     
-    # print(fid)
+    print(f"FID: {fid}")
 
     # with open(os.path.join(scores_dir, 'fid_scores.txt'), 'a') as f:
     #     #f.seek(0, 2)  # Move the cursor to the end of the file
