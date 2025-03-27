@@ -119,6 +119,9 @@ def calculate_imagenet_statistics(data_root = None, image_size = 128, batch_size
     if False:
         # Limit dataset to first 10k samples
         image_net = torch.utils.data.Subset(image_net, range(min(10000, len(image_net))))
+    else:
+        # TODO: obtain first 10 samples from each of the 1000 classes
+        raise NotImplementedError("Not implemented")
     dataloader = DataLoader(image_net, batch_size=batch_size, shuffle=False, num_workers=num_workers)
 
     mu, sigma = calculate_statistics(dataloader, device=device)
@@ -175,6 +178,7 @@ class CenterCropLongEdge(object):
 if __name__ == '__main__':
     import os
     from argparse import ArgumentParser
+    import pandas as pd
     parser = ArgumentParser()
     parser.add_argument('--dataset_path', '-dp', type=str, default='data',
                         help="path to the ImageNet val folder",)
@@ -212,13 +216,22 @@ if __name__ == '__main__':
     generations_dir = os.path.join(output_path, 'generations', 'biggan_deep_512', attention_method)
     fid, IS_mu, IS_sigma = calculate_fid_score(generations_dir, scores_path, device=device)
     
-    print(fid)
+    # print(fid)
 
-    with open(os.path.join(scores_dir, 'fid_scores.txt'), 'a') as f:
-        #f.seek(0, 2)  # Move the cursor to the end of the file
-        f.write('\n')
-        f.write(f'Attention Method: {attention_method}\n')
-        f.write(f'FID: {fid}\n')
-        f.write(f'IS_mu: {IS_mu}\n')
-        f.write(f'IS_sigma: {IS_sigma}\n')
+    # with open(os.path.join(scores_dir, 'fid_scores.txt'), 'a') as f:
+    #     #f.seek(0, 2)  # Move the cursor to the end of the file
+    #     f.write('\n')
+    #     f.write(f'Attention Method: {attention_method}\n')
+    #     f.write(f'FID: {fid}\n')
+    #     f.write(f'IS_mu: {IS_mu}\n')
+    #     f.write(f'IS_sigma: {IS_sigma}\n')
     
+    # NOTE (Albert): instead of printing to txt file, we save to a csv file
+    df = pd.DataFrame(data={
+        'attention_method': [attention_method], 
+        'fid': [fid], 
+        # 'IS_mu': [IS_mu], 
+        # 'IS_sigma': [IS_sigma]
+    })
+    save_path = os.path.join(scores_dir, f'fid-{attention_method}.csv')
+    df.to_csv(save_path, index=False)
