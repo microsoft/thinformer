@@ -10,7 +10,7 @@ The settings and implementations for all methods other than Thinformer were prov
 
 1. Download the ILSVRC2012 validation dataset from https://www.image-net.org/download.php. You will need to login and submit the terms of access. The total size is roughly 6.3 GB.
 
-2. Extract validation data using [extract_ILSVRC.sh].
+2. Extract validation data using (extract_ILSVRC.sh).
 
 3. Download the pretrained T2T-ViT model from the [T2T-ViT repo](https://github.com/yitu-opensource/T2T-ViT/releases). We choose ``82.6_T2T_ViTt_24`` model which can be downloaded by running the following command:
 ```sh
