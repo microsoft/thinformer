@@ -9,6 +9,7 @@ from biggan_models.model_reformer import ReformerBigGAN
 from biggan_models.model_kdeformer import KDEformerBigGAN
 from biggan_models.model_kdeformer_old import KDEformerBigGAN as KDEformerOldBigGAN
 from biggan_models.model_thinformer import ThinformerBigGAN
+from biggan_models.model_sblocal import SBlocalBigGAN
 
 CHECKPOINTPATH = "checkpoints"
 DATASETPATH = "data"
@@ -134,6 +135,7 @@ def get_model(
     elif attention == 'thinformer':
         model = ThinformerBigGAN.from_pretrained(model_name, g=g)
     elif attention == 'kdeformer-old':
+        raise NotImplementedError("KDEformerOldBigGAN is not implemented, use KDEformerBigGAN instead")
         model = KDEformerOldBigGAN.from_pretrained(model_name)
     else:
         raise NotImplementedError("Invalid attention option")
