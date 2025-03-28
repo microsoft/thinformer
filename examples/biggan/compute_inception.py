@@ -23,7 +23,6 @@ from util_experiments import get_base_parser
 
 parser = get_base_parser()
 args = parser.parse_args()
-dataset_path = args.dataset_path
 attention_method = args.attention
 output_path = args.output_path
 
@@ -43,7 +42,7 @@ transform = transforms.Compose([
 # NOTE: original code
 # data = torchvision.datasets.ImageNet("/home/ih244/workspace/data/imagenet/", transform=transform, split='val')
 # NOTE (Albert): use ImageFolder to load imagenet dataset
-generations_path = os.path.join(dataset_path, 'generations', 'biggan_deep_512', attention_method, "KV_0.5_0.5")
+generations_path = os.path.join(output_path, 'generations', 'biggan_deep_512', attention_method, "KV_0.5_0.5")
 print(f"Loading generations from {generations_path}...")
 data = torchvision.datasets.ImageFolder(generations_path, transform=transform)
 loader = DataLoader(data, batch_size=batch_size, shuffle=shuffle, num_workers=8, pin_memory=True)
