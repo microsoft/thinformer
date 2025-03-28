@@ -27,7 +27,7 @@ from .file_utils import cached_path
 # NOTE (Albert): original imports
 # from src.models.attention.sblocal_attention import SBLocalAttention
 # NOTE (Albert): The original imports have been modified to import correct dependencies
-from biggan_models.attention.scatter_attention import SBLocalAttention
+from biggan_models.attention.scatterbrain import SBLocalAttention
 
 logger = logging.getLogger(__name__)
 
