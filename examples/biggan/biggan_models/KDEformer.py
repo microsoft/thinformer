@@ -126,7 +126,9 @@ class KDEformer(torch.nn.Module):
         Offset += query.shape[2] * torch.arange(Offset.shape[0], device=query.device).unsqueeze(-1)
         query_sample_collision_flat = (query_sample_collision + Offset).view(-1)
         if self.mask_matrix is None:
-            mask_matrix = torch.ones(batch_size, head_size, self.sample_size, query.shape[2]).view(-1).to(query.device)
+            # Note: commented out original implementation
+            ###mask_matrix = torch.ones(batch_size, head_size, self.sample_size, query.shape[2]).view(-1).to(query.device)
+            mask_matrix = torch.ones(batch_size, head_size, self.sample_size, query.shape[2],device=query.device).view(-1)
         else:
             mask_matrix = self.mask_matrix.to(query.device)
         # mask_matrix = torch.ones(batch_size, head_size, self.sample_size, query.shape[2]).view(-1).to(query.device)
@@ -170,7 +172,9 @@ class KDEformer(torch.nn.Module):
         _, K_sort_idx = torch.sort(lsh.hash(key), dim=2)
         _, Q_sort_idx = torch.sort(lsh.hash(query), dim=2)
 
-        value_aug = torch.cat((value, torch.ones(value.shape[0], value.shape[1], value.shape[2], 1).to(value.device)), dim=3)
+        # Note: commented out original implementation
+        ###value_aug = torch.cat((value, torch.ones(value.shape[0], value.shape[1], value.shape[2], 1).to(value.device)), dim=3)
+        value_aug = torch.cat((value, torch.ones(value.shape[0], value.shape[1], value.shape[2], 1, device=value.device)), dim=3)
         att_sparse = CosineHammingLSH(Bucket_size=self.Bucket_size)(query=query, key=key, weight=value_aug, K_sort_idx=K_sort_idx, Q_sort_idx=Q_sort_idx)
 
         batch_size, head_size = query.shape[0], query.shape[1]

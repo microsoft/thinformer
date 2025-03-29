@@ -9,7 +9,7 @@ from biggan_models.model_reformer import ReformerBigGAN
 from biggan_models.model_kdeformer import KDEformerBigGAN
 from biggan_models.model_kdeformer_old import KDEformerBigGAN as KDEformerOldBigGAN
 from biggan_models.model_thinformer import ThinformerBigGAN
-from biggan_models.model_sblocal import SBlocalBigGAN
+#from biggan_models.model_sblocal import SBlocalBigGAN
 
 CHECKPOINTPATH = "checkpoints"
 DATASETPATH = "data"
