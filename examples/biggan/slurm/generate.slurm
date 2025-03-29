@@ -20,12 +20,11 @@ OUTPUT_PATH=$1
 # done
 
 METHODS=(
-    # exact
-    # performer
+    exact
+    performer
     reformer
-    # kdeformer
-    # sblocal
-    # thinformer
+    kdeformer
+    thinformer
 )
 for method in "${METHODS[@]}"
 do
