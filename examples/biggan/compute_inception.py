@@ -4,7 +4,7 @@ Adapted from code snippet provided by authors of KDEformer (see `demo_inception_
 
 Example usage:
 ```bash
-python compute_inception.py -dp OUTPUT_PATH -op OUTPUT_PATH --attention METHOD
+python compute_inception.py -op OUTPUT_PATH --attention METHOD
 ```
 """
 
