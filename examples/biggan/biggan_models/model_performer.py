@@ -27,9 +27,9 @@ from .file_utils import cached_path
 # NOTE (Albert): original imports
 # import sys
 # sys.path.append("../")
-# from Performer import PerformerAttention
-# NOTE (Albert): The original imports have been modified to import correct dependencies
-from biggan_models.attention.performer.performer_attention import PerformerAttention
+from .Performer import PerformerAttention
+# # NOTE (Albert): The original imports have been modified to import correct dependencies
+# from biggan_models.attention.performer.performer_attention import PerformerAttention
 
 logger = logging.getLogger(__name__)
 
