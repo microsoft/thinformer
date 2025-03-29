@@ -2,21 +2,33 @@
 #SBATCH --job-name=runtime
 #SBATCH --output=logs/runtime_%j.out
 #SBATCH --error=logs/runtime_%j.err
-#SBATCH --time=24:00:00
-#SBATCH --nodes=1
-#SBATCH --ntasks-per-node=1
-#SBATCH --gres=gpu:1
-#SBATCH --cpus-per-task=4
-#SBATCH --mem=32G
+#SBATCH -N 1                                 # Total number of nodes requested
+#SBATCH -n 8                                 # Total number of cores requested
+#SBATCH --get-user-env                       # retrieve the users login environment
+#SBATCH --mem=100GB                           # server memory (MBs) requested (per node)
+#SBATCH --gres=gpu:a6000:1
 
 # Script to compute runtimes of BigGAN using a given attention method
 
 OUTPUT_PATH=$1
-METHOD=$2
 
-# Run thinformer
-for g in 0 1 2 3 4
+# # Run thinformer
+# for g in 0 1 2 3 4
+# do
+#     echo "Running thinformer with g=$g"
+#     python runtime.py --attention thinformer -g $g -op "${OUTPUT_PATH}-g${g}"
+# done
+
+METHODS=(
+    exact
+    performer
+    reformer
+    kdeformer
+    thinformer
+)
+for method in "${METHODS[@]}"
 do
-    echo "Running thinformer with g=$g"
-    python runtime.py --attention thinformer -g $g -op "${OUTPUT_PATH}-g${g}"
+    CMD="python runtime.py --attention $method -op $OUTPUT_PATH"
+    echo $CMD
+    eval $CMD
 done

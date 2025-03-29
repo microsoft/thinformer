@@ -22,9 +22,9 @@ OUTPUT_PATH=$1
 METHODS=(
     # exact
     # performer
-    # reformer
+    reformer
     # kdeformer
-    sblocal
+    # sblocal
     # thinformer
 )
 for method in "${METHODS[@]}"
