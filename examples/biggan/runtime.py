@@ -46,7 +46,6 @@ device = args.device if args.device else torch.device
 batch_size = args.batch_size
 batch_number = args.batch_number
 ckpt_path = args.ckpt_path
-dataset_path = args.dataset_path
 output_path = args.output_path
 num_runs = args.num_runs
 model_name = args.model_name
