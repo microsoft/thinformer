@@ -28,7 +28,7 @@ python compute_fid.py -dp PATH/TO/IMAGENET/val -op OUTPUT_PATH --attention METHO
 3. Compute Inception scores:
 
 ```bash
-python demo_inception_scores.py  # TODO (Albert)
+python compute_inception.py -op OUTPUT_PATH --attention METHOD
 ```
 
 4. Compute runtimes:
