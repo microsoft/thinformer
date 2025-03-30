@@ -74,7 +74,9 @@ class ReformerSelfAttn(nn.Module):
         self.softmax  = nn.Softmax(dim=-1)
         self.gamma = nn.Parameter(torch.zeros(1))
 
-        # self.reformer = ReformerAttention(bucket_size=64, n_hashes=8)
+        ### self.reformer = ReformerAttention(bucket_size=64, n_hashes=8)
+        # NOTE (Albert): rename to attn so that it can be called by timing script
+        self.attn = ReformerAttention(bucket_size=64, n_hashes=8)
         
     def fastformer(self, query, key, value):
         # attn_exact = torch.bmm(value, self.softmax(torch.bmm(query.permute(0, 2, 1), key)).permute(0, 2, 1))
@@ -88,10 +90,10 @@ class ReformerSelfAttn(nn.Module):
         att = []
         for i in range(4):
             # reformer = ReformerAttention(softmax_temp=1., bucket_size=64, n_hashes=1)
-            att_i = ReformerAttention(bucket_size=64, n_hashes=8).forward(
+            att_i = self.attn(
                 k=None,
-                qk=query[:,1024*i:1024*(i+1),:,:].double(),
-                v=value.double()
+                qk=query[:,1024*i:1024*(i+1),:,:], #.double(),
+                v=value, #.double()
             )[0]
             att.append(att_i)
         att = torch.cat(att, 1)

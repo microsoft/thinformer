@@ -76,7 +76,9 @@ class PerformerSelfAttn(nn.Module):
         self.softmax  = nn.Softmax(dim=-1)
         self.gamma = nn.Parameter(torch.zeros(1))
 
-        self.performer = PerformerAttention(num_feats=128)
+        ### self.performer = PerformerAttention(num_feats=128)
+        # NOTE (Albert): rename to attn so that it can be called by timing script
+        self.attn = PerformerAttention(num_feats=128)
         # self.performer = PerformerAttention3(num_feats=128, input_dims=(1, 16, 64))
         # self.performer = PerformerAttention(softmax_temp=1., dim_heads=64, nb_features=128)
         
@@ -88,7 +90,7 @@ class PerformerSelfAttn(nn.Module):
 
         key = key.unsqueeze(0).transpose(1,2)
         value = value.unsqueeze(0).transpose(1,2)
-        att = self.performer.forward(query=query, key=key, value=value)
+        att = self.attn(query=query, key=key, value=value)
         return att.squeeze(0).transpose(1,2)
 
     def forward(self, x):
