@@ -11,6 +11,7 @@
 # Script to generate images using BigGAN (biggan-deep-512) using a given attention method
 
 OUTPUT_PATH=$1
+DATA_PATH=$2
 
 # # Run thinformer for multiple values of g
 # for g in 0 1 2 3 4
@@ -23,12 +24,21 @@ METHODS=(
     exact
     performer
     reformer
+    sblocal
     kdeformer
     thinformer
 )
 for method in "${METHODS[@]}"
 do
-    CMD="python compress_bigGAN_script.py --num_classes 1000 --data_per_class 5 --beta 0.5 --attention $method -op $OUTPUT_PATH"
+    # Run compress_bigGAN_script.py to generate the images
+    CMD="python compress_bigGAN_script.py --num_classes 1000 --data_per_class 5 --beta 0.5 --attention $method -op $OUTPUT_PATH --force"
     echo $CMD
     eval $CMD
-done
+
+    # Run compute_fid.py to compute the FID score
+    CMD="python compute_fid.py --output_path $OUTPUT_PATH -dp $DATA_PATH/val --attention $method"
+    echo $CMD
+    eval $CMD
+
+    # Run compute_inception.py to compute the IS score
+    CMD="python compute_i
