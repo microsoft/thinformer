@@ -39,6 +39,7 @@ For an example usage, see our [T2T-ViT ImageNet classification experiments](./ex
 This package has been tested with the following operating system, Python, and PyTorch combinations:
 - Ubuntu 20.04, Python 3.12.9, Torch 2.4.0
 - Ubuntu 20.04, Python 3.12.9, Torch 2.6.0
+- Ubuntu 22.04.5, Python 3.12.9, Torch 2.8.0
 
 ## Contributing
 

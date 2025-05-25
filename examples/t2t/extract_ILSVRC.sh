@@ -1,6 +1,6 @@
 #!/bin/bash
 #
-# script to extract ImageNet validation dataset
+# script to extract ImageNet dataset
 # ILSVRC2012_img_val.tar (about 6.3 GB)
 # make sure ILSVRC2012_img_val.tar is in your current directory
 #

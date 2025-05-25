@@ -77,9 +77,9 @@ else:
     # get the requested batch of inputs
     for ii in range(batch_number):
         inputs, _ = next(iter_val)
-        # save the batch
-        save_path = os.path.join(batch_path, f"batch-bs{batch_size}-bn{ii + 1}.pt")
-        torch.save(inputs, save_path)
+    # save the batch
+    save_path = os.path.join(batch_path, f"batch-bs{batch_size}-bn{ii + 1}.pt")
+    torch.save(inputs, save_path)
 
 # Send to device
 inputs = inputs.to(device, dtype=dtype)

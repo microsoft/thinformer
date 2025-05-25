@@ -14,38 +14,38 @@ from torch import (
     amax,
     square,
     cummax,
-    log,
     tensor,
     softmax,
     inf,
 )
-from torch.linalg import vector_norm
 from torch import sqrt as torch_sqrt
+from torch import log as torch_log
 from torch import bool as torch_bool
+from torch.linalg import vector_norm
 from torch.nn.functional import scaled_dot_product_attention
-from math import sqrt
+from math import sqrt, log
 
-
-def largest_power_of_four(n: int) -> int:
-    """Returns the largest power of four less than or equal to n.
+def log4_largest_power_of_four(n: int) -> int:
+    """Returns log_4 of the largest power of four less than or equal to n.
 
     Args:
         n: An integer input.
 
     Returns:
-        The largest power of four less than or equal to n.
+        Log base 4 of the largest power of four less than or equal to n.
 
     """
-    return 4 ** ((n.bit_length() - 1) // 2)
+    return (n.bit_length() - 1) // 2
 
 
 def exp_kernel(
-    key: torch.Tensor, value: torch.Tensor, shift: torch.Tensor, b_sqd: torch.Tensor
+    key: torch.Tensor, value: torch.Tensor, shift: torch.Tensor, 
+    b_sqd: torch.Tensor
 ) -> torch.Tensor:
     """Returns tensor of weighted exponential kernel matrices
     kernel_mat[b,a,h]
         = exp(key[b,a,:,h] @ key[b,a,:,h].T - shift[b,0,h])
-        * (value[b,a,:,h] @ value[b,a,:,h].T + 1)
+        * (value[b,a,:,h] @ value[b,a,:,h].T + b_sqd[b,0,h])
 
     Note: Assumes key has already been scaled appropriately by
     sqrt(softmax_temp)
@@ -89,7 +89,7 @@ def halve_K(
     B, A, H, S, _ = K.shape
     device = K.device
     num_points_in_coreset = S // 2
-    log_multiplier = 0.5 + log(2 * tensor(S) / delta)
+    log_multiplier = 0.5 + log(2 * S / delta)
 
     uniforms = empty(B, A, H, num_points_in_coreset, device=device).uniform_(
         -log_multiplier, log_multiplier
@@ -118,10 +118,11 @@ def halve_K(
 
 
 def halve(
-    X: torch.Tensor,
+    key: torch.Tensor,
+    value: torch.Tensor,
     shift: torch.Tensor,
-    halve_prob: float,
     b_sqd: torch.Tensor,
+    halve_prob: float,
     symmetrize: bool = True,
 ) -> torch.Tensor:
     """Weighted exponential kernel halving
@@ -132,142 +133,148 @@ def halve(
     kernel matrices for each (b,a,h).
 
     Args:
-        X: tensor of shape [B, A, S, H, 2*E]
-        shift: tensor of shape [B, 1, H, 1, 1] accepted by exp_kernel
+        key: tensor of shape [B, A, S, H, E]
+        value: tensor of shape [B, A, S, H, D]
+        shift: tensor of shape [B, 1, H, 1, 1] accepted by exp_kernel;
+            typically represents the maximum squared key vector two norm
+            to prevent exponential overflow via log-sum-exp trick
         halve_prob: halve_K is run with delta = halve_prob * S^2
+        b_sqd: tensor of shape [B, 1, H, 1, 1] accepted by exp_kernel;
+            typically represents the maximum squared value vector inf norm
         symmetrize: if False, returns initial coreset for each (b,a,h);
             if True, returns initial coreset or its complement uniformly at
             random for each (b,a,h)
-        b_sqd: tensor of shape [B, 1, H, 1, 1]
 
-    Assumes key and value components of X have the same shape
-
-    Returns tensor of shape [B, A, S//2, H, 2*E]
+    Returns:
+        key coreset tensor of shape [B, A, S//2, H, E] and
+        value coreset tensor of shape [B, A, S//2, H, D]
 
     """
-    feature_dim = 4
-    B, A, S, H, two_E = X.shape
-    E = two_E // 2
-    key = narrow(X, feature_dim, 0, E)
-    value = narrow(X, feature_dim, E, E)
+    B, A, S, H, E = key.shape
+    D = value.shape[-1]
+    # Compute attention kernel matrix
     kernel_mat = exp_kernel(key, value, shift, b_sqd)
+    # Select half of (key, value) pairs using kernel halving
     delta = halve_prob * S * S
     coreset = halve_K(kernel_mat, delta, symmetrize=symmetrize)
-    return X.gather(
-        2, coreset.transpose(2, 3).unsqueeze(-1).expand(B, A, S // 2, H, two_E)
-    )
+    # Return corresponding half of keys and values
+    S_over_2 = S // 2
+    coreset = coreset.transpose(2, 3).unsqueeze(-1)
+    return (key.gather(2, coreset.expand(B, A, S_over_2, H, E)), 
+        value.gather(2, coreset.expand(B, A, S_over_2, H, D)))
 
 
 @torch.compile(mode="reduce-overhead", fullgraph=True)
 def _khcompress(
-    X: torch.Tensor,
+    key: torch.Tensor,
+    value: torch.Tensor,
     four_to_g_plus_1: int,
-    m: int,
-    shift: torch.Tensor,
+    num_halving_rounds: int,
     halve_prob: float,
     symmetrize: bool,
-    final_halve_prob: float,
 ) -> torch.Tensor:
     """KH-Compress(g)
 
     Produces a coreset of size 2^g sqrt(S). NOTE: S must be a power of 4.
 
     Args:
-        X: tensor of shape [B, S, H, E_plus_D]
+        key: Tensor of shape [B, S, H, E]
+        value: Tensor of shape [B, S, H, D]
         four_to_g_plus_1: 4^{g+1} for the Compress oversampling parameter, g
-        m: number of thinning steps
-        shift: parameters for kernel function
-        halve_prob: parameters for halve function
+        num_halving_rounds: number of Compress halving rounds
+        halve_prob: parameters for halve()
         symmetrize: if True, randomly choose between coreset and its complement
-        final_halve_prob: halve_prob for final halving round
 
     Returns:
-        tensor of shape [B, S//2^m, H, E_plus_D]
+        key coreset tensor of shape [B, S//2^m, H, E] and 
+        value coreset tensor of shape [B, S//2^m, H, D]
 
     """
-    B, S, H, E_plus_D = X.shape
-    b_sqd = (
-        vector_norm(
-            X[:, :, :, E_plus_D // 2 :], dim=(1, 3), ord=inf, keepdim=True
-        ).unsqueeze(-1)
-        ** 2
-    )
+    # Compute kernel parameters:
+    # Max squared key vector two norm
+    shift = amax(square(key).sum(dim=3, keepdim=True), dim=1, keepdim=True)
+    shift = shift.permute((0, 2, 1, 3))
+    shift = shift.unsqueeze(1)
+    # Max squared value vector inf norm
+    b_sqd = vector_norm(
+        value, dim=(1, 3), ord=inf, keepdim=True).unsqueeze(-1) ** 2
 
-    for i in range(m):
-        bucket_size = 2**i * four_to_g_plus_1
-        X = X.view(B, -1, bucket_size, H, E_plus_D)
-        X = halve(X, shift, halve_prob, b_sqd, symmetrize=symmetrize)
+    # Combine keys and values
+    B, _, H, E = key.shape
+    D = value.shape[-1]
 
-    X = halve(
-        X.view(B, 1, -1, H, E_plus_D),
-        shift,
-        final_halve_prob,
-        b_sqd,
-        symmetrize=False,
-    )
-    return X.view(B, -1, H, E_plus_D)
+    # Execute Compress in bottom-up fashion by iteratively dividing input
+    # into consecutive buckets of size bucket_size and halving each bucket.
+    # Note that bucket_size grows by a factor of 2 on each halving round.
+    bucket_size = four_to_g_plus_1
+    for i in range(num_halving_rounds):
+        key = key.view(B, -1, bucket_size, H, E)
+        value = value.view(B, -1, bucket_size, H, D)
+        key, value = halve(key, value, shift, b_sqd, halve_prob, symmetrize=symmetrize)
+        bucket_size *= 2
+
+    return key.view(B, -1, H, E), value.view(B, -1, H, D)
 
 
 def khcompress(
-    X: torch.Tensor,
-    log2_n: int,
+    key: torch.Tensor,
+    value: torch.Tensor,
+    log4_n: int,
     g: int = 0,
-    shift: torch.Tensor = 0,
     delta: float = 0.5,
 ) -> torch.Tensor:
     """KH-Compress(g)
 
-    Computes a coreset of size 2^g sqrt(n), where n is the largest power of 4
-    less than or equal to S, the input sequence length.
+    Computes a coreset of size n_out = min(n, 2^g sqrt(n)), where n is the 
+    largest power of 4 less than or equal to S, the input sequence length.
 
-    NOTE: This implementation first thins the input sequence to a size n,
+    NOTE: This implementation first standard thins the input sequence to a size n,
     then computes a coreset of size 2^g sqrt(n) by calling the _khcompress function.
 
     Args:
-        X: Tensor of shape [B, S, H, E+D]
-        log2_n: log base 2 of n
+        key: Tensor of shape [B, S, H, E]
+        value: Tensor of shape [B, S, H, D]
+        log4_n: log base 4 of n
         g: Oversampling factor, int >= 0
-        shift: Tensor broadcastable to shape [B, 1, H, 1, 1] accepted by exp_kernel
         delta: Kernel halving failure parameter, scalar in [0,1]
 
     Returns:
-        Tensor of shape [B, 2^g sqrt(n), H, E_plus_D]
-
+        key coreset Tensor of shape [B, n_out, H, E] and
+        value coreset Tensor of shape [B, n_out, H, D]
+        
     """
-    log2_num_bins = 2  # num_bins = 4
-    B, S, H, E_plus_D = X.shape
-    log2_bin_size = log2_n - log2_num_bins
-    bin_size = 2**log2_bin_size
-    n = 2**log2_n
+    S = key.shape[1]
+    n = 4**log4_n
+    four_to_g_plus_1 = int(4 ** (g + 1))
+    
+    # Standard thin keys and values down to sequence length n
     stride = S // n
-    X = X[:, 0 : n * stride : stride]
-    four_to_g_plus_1 = 4 ** (g + 1)
-    if bin_size < four_to_g_plus_1:
-        return X
+    n_times_stride = n * stride
+    key = key[:, 0 : n_times_stride : stride]
+    value = value[:, 0 : n_times_stride : stride]
 
-    log2_sqrt_bin_size_minus_g = log2_bin_size // 2 - g
-    halve_prob = delta / four_to_g_plus_1 / log2_sqrt_bin_size_minus_g / n
-    m = log2_num_bins // 2
-    thin_frac = m / (m + (2**m) * log2_sqrt_bin_size_minus_g)
+    # If n <= 2^g sqrt(n), no further thinning is needed
+    # Since n is a power of four, equivalently, check if 
+    # n < 4^{g+1}
+    if n < four_to_g_plus_1:
+        return key, value
 
-    halve_prob *= 1 - thin_frac
-    thin_delta = delta * thin_frac
+    # Compute number of Compress halving rounds
+    num_halving_rounds = int(log4_n - g)
+    
+    # Compute KH-Compress base halving probability parameter
+    halve_prob = delta / four_to_g_plus_1 / num_halving_rounds / n
 
-    # NOTE: thin_S = 2^g sqrt(num_bins) sqrt(n)
-    #              = 2^(g+1) sqrt(n)  (when num_bins = 4)
-    thin_n_sqd = four_to_g_plus_1 * n
-    # NOTE: To prevent overwriting, we call torch.compiler.cudagraph_mark_step_begin() before each function invocation.
+    # NOTE: To prevent overwriting, we call 
+    # torch.compiler.cudagraph_mark_step_begin() 
     torch.compiler.cudagraph_mark_step_begin()
-    X = _khcompress(
-        X,
-        int(four_to_g_plus_1),
-        int(log2_sqrt_bin_size_minus_g),
-        shift,
+    key, value = _khcompress(
+        key, value,
+        four_to_g_plus_1,
+        num_halving_rounds,
         halve_prob,
-        symmetrize=True,
-        final_halve_prob=thin_delta / thin_n_sqd,
-    )
-    return X
+        symmetrize=True)
+    return key, value
 
 
 @torch.compile(mode="reduce-overhead", fullgraph=True)
@@ -302,7 +309,7 @@ class ThinformerAttention(nn.Module):
 
     def __init__(
         self,
-        g: int = 1,
+        g: int = 2,
         scale: float | None = None,
         use_torch_spda: bool = False,
         **kwargs: dict,
@@ -311,10 +318,12 @@ class ThinformerAttention(nn.Module):
 
         Args:
             g (int): oversampling parameter, a nonnegative integer
-            scale (float): scale for dot-product attention. If `None`, the scale is set to 1/sqrt(E).
-            use_torch_spda (bool): if True, use torch.nn.functional.scaled_dot_product_attention,
-                which automatically optimizes the attention computation for GPUs, for the
-                final attention computation.
+            scale (float): scale for dot-product attention. 
+              If `None`, scale is chosen as 1/sqrt(key.shape[-1]) in forward.
+            use_torch_spda (bool): if True, use 
+              torch.nn.functional.scaled_dot_product_attention,
+              which automatically optimizes the attention computation for GPUs, 
+              for the final attention computation.
             kwargs: placeholder for other arguments
 
         """
@@ -342,29 +351,27 @@ class ThinformerAttention(nn.Module):
         e.g., torch.nn.functional.scaled_dot_product_attention.
 
         Args:
-            query: (B, T, H, E) The tensor containing the query
-            key: (B, S, H, E) The tensor containing the key
-            value: (B, S, H, D) The tensor containing the value
+            query: (B, T, H, E) The tensor containing the queries
+            key: (B, S, H, E) The tensor containing the keys
+            value: (B, S, H, D) The tensor containing the values
 
         Returns:
-            output: (B, T, H, D) The tensor containing the output
-            A: (B, T, H, S) The attention weights
+            output: (B, T, H, D) The tensor approximating
+              softmax(query * tranpose(key) * softmax_temp) * value
+              for softmax_temp = self.scale or 1 / sqrt(E)
+            A: (B, T, H, S) The attention weights approximating
+              softmax(query * tranpose(key) * softmax_temp)
 
         """
+        # Compute squareroot of softmax temperature 
+        # for the attention that A = softmax(query * key * softmax_temp)
         E = key.shape[-1]
         sqrt_softmax_temp = sqrt(self.scale or 1 / sqrt(E))
-        X = cat((key * sqrt_softmax_temp, value), dim=3)
-        shift = amax(square(X[..., :E]).sum(dim=3, keepdim=True), dim=1, keepdim=True)
-        shift = shift.permute((0, 2, 1, 3))
-        shift = shift.unsqueeze(1)
-        n = largest_power_of_four(X.shape[1])
-        X = khcompress(X, log2_n=(n.bit_length() - 1), g=self.g, shift=shift)
-
-        E = key.shape[3]
-        D = value.shape[3]
-        key = narrow(X, 3, 0, E)
-        value = narrow(X, 3, E, D)
-        key *= sqrt_softmax_temp
+        S = key.shape[1]
+        log4_n = log4_largest_power_of_four(S)
+        key, value = khcompress(key * sqrt_softmax_temp, value, 
+                                log4_n, g=self.g)
+        key = key * sqrt_softmax_temp
 
         if self.use_torch_spda:
             # NOTE: we set scale=1.0 since we have already scaled the query and key

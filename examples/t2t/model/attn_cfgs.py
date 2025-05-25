@@ -108,7 +108,7 @@ def get_attn_cfg2(attn2: str, args: ArgumentParser | None = None) -> dict:
     elif attn2 == "thinformer":
         return {
             "name": "thinformer",
-            "g": 3,
+            "g": 4,
             "use_torch_spda": False,
         }
 

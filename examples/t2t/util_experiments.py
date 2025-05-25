@@ -132,12 +132,6 @@ def get_modules(model: torch.nn.Module) -> dict:
     """Get the modules of the T2T-ViT model."""
     modules = {
         "attention1.attn.attention_layer": model.patch_embed.attention1.attn.attention_layer,
-        "attention1.attn": model.patch_embed.attention1.attn,
-        "attention1": model.patch_embed.attention1,
         "attention2.attn.attention_layer": model.patch_embed.attention2.attn.attention_layer,
-        "attention2.attn": model.patch_embed.attention2.attn,
-        "attention2": model.patch_embed.attention2,
-        "patch_embed": model.patch_embed,
-        "all": model,
     }
     return modules
