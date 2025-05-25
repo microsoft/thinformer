@@ -41,4 +41,7 @@ do
     eval $CMD
 
     # Run compute_inception.py to compute the IS score
-    CMD="python compute_i
+    CMD="python compute_inception.py --output_path $OUTPUT_PATH --attention $method"
+    echo $CMD
+    eval $CMD
+done
