@@ -54,6 +54,18 @@ def main():
     for args_name, args_value in args.__dict__.items():
         print(f"{args_name}: {args_value}")
 
+    output_path = os.path.join(
+        args.output_path, 
+        "generations", 
+        f"{args.model_name.replace('-','_')}", args.attention, f"{args.kernel}_{args.alpha}_{args.beta}"
+    )
+
+    if os.path.exists(output_path) and not args.force:
+        print(f"Output path {output_path} already exists. Use --force to overwrite.")
+        exit()
+    else:
+        os.makedirs(output_path, exist_ok=True)
+
     model_name = args.model_name
     num_classes = args.num_classes
     data_per_class = args.data_per_class
@@ -118,16 +130,10 @@ def main():
         print(f"output_all.shape: {output.shape}")
         print(f"generation time : {time_generation:.4f} sec")
 
-        if not args.no_store:  
-            generations_dir = os.path.join(args.output_path, "generations")
-            os.makedirs(generations_dir, exist_ok=True)
-            output_path = os.path.join(generations_dir, f"{model_name.replace('-','_')}", attention, f"{args.kernel}_{args.alpha}_{args.beta}")
-            os.makedirs(output_path, exist_ok=True)
-
-            tic = time.time()
-            print("saving images....")
-            save_as_images_by_class(output, labels_all, output_path)
-            print(f"done. ({time.time() - tic:.4f} sec)")
+        tic = time.time()
+        print("saving images....")
+        save_as_images_by_class(output, labels_all, output_path)
+        print(f"done. ({time.time() - tic:.4f} sec)")
 
 
 if __name__ == "__main__":
