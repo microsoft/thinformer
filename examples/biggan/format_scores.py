@@ -21,15 +21,21 @@ print(f"Found {len(csv_files)} csv files in {scores_dir}")
 df_list = []
 for file in csv_files:
     df = pd.read_csv(file)
+    # if score is 'inception', then merge 'IS_mean' and 'IS_std' into a single column
+    if 'IS_mean' in df.columns and 'IS_std' in df.columns:
+        df['value'] = df.apply(lambda row: f"{row['IS_mean']:.2f} ± {row['IS_std']:.2f}", axis=1)
+        df = df[['method', 'score', 'value']]
+    elif 'fid' in df.columns:
+        # rename the 'fid' column to 'value'
+        df = df.rename(columns={'fid': 'value'})
     df_list.append(df)
 
 # Concatenate all the dataframes
 df = pd.concat(df_list)
-
-# import pdb; pdb.set_trace()
 # pivot the dataframe by method and score
-# df = df.pivot(index='method', columns='score', values='value')
-
+df = df.pivot(index='method', columns='score', values='value')
+# re-order the rows by ['exact', 'reformer', 'performer', 'sblocal', 'kdeformer', 'thinformer']
+df = df.reindex(['exact', 'reformer', 'performer', 'sblocal', 'kdeformer', 'thinformer'])
 # Print the table
 print(tabulate(df, headers='keys', tablefmt='github'))
 
