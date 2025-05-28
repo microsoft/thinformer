@@ -6,18 +6,28 @@ import sys
 import time
 import numpy as np
 from tqdm import tqdm
-from biggan_models.model import BigGAN
-from biggan_models.utils import (
-    truncated_noise_sample, 
-    one_hot_from_int, 
-    save_as_images
-)
+if False:
+    from pytorch_pretrained_biggan import (BigGAN, one_hot_from_names, 
+                                        truncated_noise_sample, one_hot_from_int,
+                                        save_as_images)
 
-from biggan_models.model_kdeformer import KDEformerBigGAN
-from biggan_models.model_performer import PerformerBigGAN
-from biggan_models.model_reformer import ReformerBigGAN
-from biggan_models.model_sblocal import SBlocalBigGAN
-
+    from pytorch_pretrained_biggan.model_fast import FastBigGAN
+    from pytorch_pretrained_biggan.model_performer import PerformerBigGAN
+    from pytorch_pretrained_biggan.model_reformer import ReformerBigGAN
+    from pytorch_pretrained_biggan.model_sblocal import SBlocalBigGAN
+else:
+    from biggan_models.model import BigGAN
+    from biggan_models.utils import (
+        truncated_noise_sample, 
+        one_hot_from_int, 
+        save_as_images
+    )
+    from biggan_models.model_fast import FastBigGAN
+    from biggan_models.model_performer import PerformerBigGAN
+    from biggan_models.model_reformer import ReformerBigGAN
+    from biggan_models.model_sblocal import SBlocalBigGAN
+    from biggan_models.model_kdeformer import KDEformerBigGAN
+    from biggan_models.model_thinformer import ThinformerBigGAN
 
 def get_args():
     parser = argparse.ArgumentParser()
@@ -26,7 +36,7 @@ def get_args():
     parser.add_argument("--data_per_class",type=int, default=1)
     parser.add_argument("--seed",type=int, default=1)
     parser.add_argument("--batch_size",type=int, default=32)
-    parser.add_argument("--attention",type=str, default='exact', choices=['exact', 'kdeformer', 'performer', 'reformer', 'sblocal'])
+    parser.add_argument("--attention",type=str, default='exact', choices=['exact', 'kde', 'performer', 'reformer', 'sblocal', 'thinformer', 'kdeformer'])
     parser.add_argument("--truncation",type=float, default=0.4)
     parser.add_argument("--no_store",action='store_true')
     parser.add_argument("--fid",action='store_true')
@@ -54,6 +64,8 @@ def main():
     # Load pre-trained model tokenizer (vocabulary)
     if attention == 'exact':
         model = BigGAN.from_pretrained(model_name)
+    elif attention == 'kde':
+        model = FastBigGAN.from_pretrained(model_name)
     elif attention == 'kdeformer':
         model = KDEformerBigGAN.from_pretrained(model_name)
     elif attention == 'performer':
@@ -62,6 +74,8 @@ def main():
         model = ReformerBigGAN.from_pretrained(model_name)
     elif attention == 'sblocal':
         model = SBlocalBigGAN.from_pretrained(model_name)
+    elif attention == 'thinformer':
+        model = ThinformerBigGAN.from_pretrained(model_name)
     else:
         raise NotImplementedError("Invalid attention option")
 
@@ -111,16 +125,16 @@ def main():
     if args.fid:
         print("computing FID & Inception scores ...")
         from demo_inception_score import get_inception_features, compute_fid, compute_inception, get_logits
-        # sys.path.append("/home/ih244/workspace/kde/BigGAN-PyTorch")
+        sys.path.append("/home/ih244/workspace/kde/BigGAN-PyTorch")
         import inception_utils
         
         pool, logits = get_logits(output_all)
-        import pdb; pdb.set_trace();
+
         is_mean_fake, is_std_fake = inception_utils.calculate_inception_score(logits.cpu().numpy(), num_splits=10)
         mu, sigma = np.mean(pool.cpu().numpy(), axis=0), np.cov(pool.cpu().numpy(), rowvar=False)
         data_mu = np.load('imagenet_val_inception_moments.npz')['mu']
         data_sigma = np.load('imagenet_val_inception_moments.npz')['sigma']
-        import pdb; pdb.set_trace();
+
         fid_value = inception_utils.numpy_calculate_frechet_distance(mu, sigma, data_mu, data_sigma)
         # fake_features = get_inception_features((((output_all + 1.) / 2.) * 255).type(torch.uint8))
         # real_features = torch.load("./imagenet_val_inception_features.pth")
