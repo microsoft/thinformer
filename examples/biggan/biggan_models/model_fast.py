@@ -72,6 +72,8 @@ class FastSelfAttn(nn.Module):
         self.maxpool = nn.MaxPool2d(2, stride=2, padding=0)
         self.softmax  = nn.Softmax(dim=-1)
         self.gamma = nn.Parameter(torch.zeros(1))
+
+        self.attn = CosineHammingAttention(rep_D=1, num_projs=7, Bucket_size=64, sample_size=128)
         
     def fastformer(self, query, key, value):
         
@@ -82,7 +84,7 @@ class FastSelfAttn(nn.Module):
         key = key.unsqueeze(0).transpose(1,2)
         value = value.unsqueeze(0).transpose(1,2)
 
-        att_ham = CosineHammingAttention(rep_D=1, num_projs=7, Bucket_size=64, sample_size=128).forward(
+        att_ham = self.attn(
             key=key.double(),
             query=query.double(),
             value=value.double(),

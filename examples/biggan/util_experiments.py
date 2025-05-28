@@ -9,6 +9,7 @@ from biggan_models.model_reformer import ReformerBigGAN
 from biggan_models.model_kdeformer import KDEformerBigGAN
 from biggan_models.model_thinformer import ThinformerBigGAN
 from biggan_models.model_sblocal import SBlocalBigGAN
+from biggan_models.model_fast import FastBigGAN
 
 CHECKPOINTPATH = "checkpoints"
 DATASETPATH = "data"
@@ -60,7 +61,7 @@ def get_base_parser() -> argparse.ArgumentParser:
     parser.add_argument("--num_outputs",type=int, default=-1)
     parser.add_argument("--data_per_class",type=int, default=1)
     parser.add_argument("--batch_size",type=int, default=32)
-    parser.add_argument("--attention",type=str, default='exact', choices=['exact', 'kdeformer', 'performer', 'reformer', 'sblocal', 'thinformer'])
+    parser.add_argument("--attention",type=str, default='exact', choices=['exact', 'kdeformer', 'performer', 'reformer', 'sblocal', 'thinformer', 'kde'])
     parser.add_argument("--truncation",type=float, default=0.4)
     parser.add_argument("--no_store",action='store_true')    
     parser.add_argument("--g", "-g", type = int, default=None, 
@@ -123,6 +124,8 @@ def get_model(
     # Load pre-trained model tokenizer (vocabulary)
     if attention == 'exact':
         model = BigGAN.from_pretrained(model_name)
+    elif attention == 'kde':
+        model = FastBigGAN.from_pretrained(model_name)
     elif attention == 'kdeformer':
         model = KDEformerBigGAN.from_pretrained(model_name)
     elif attention == 'performer':
