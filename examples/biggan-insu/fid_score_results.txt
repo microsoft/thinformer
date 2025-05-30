@@ -1,0 +1,7 @@
+model: biggan-deep-512, attention: exact     , data_per_class: 5, fid: 32.18271879266206, is_mean_fake: 58.368919372558594, is_std_fake: 4.212975978851318
+model: biggan-deep-512, attention: exact     , data_per_class: 5, fid: 32.18271879266206, is_mean_fake: 58.368919372558594, is_std_fake: 4.212975978851318
+model: biggan-deep-512, attention: kde       , data_per_class: 5, fid: 30.68597618561637, is_mean_fake: 57.3344612121582, is_std_fake: 4.108572006225586
+model: biggan-deep-512, attention: kde       , data_per_class: 5, fid: 30.517277927737155, is_mean_fake: 57.41840744018555, is_std_fake: 4.277297496795654
+model: biggan-deep-512, attention: reformer  , data_per_class: 5, fid: 72.13008629207229, is_mean_fake: 19.21736717224121, is_std_fake: 2.0128769874572754
+model: biggan-deep-512, attention: sblocal   , data_per_class: 5, fid: 38.46666880252741, is_mean_fake: 36.337646484375, is_std_fake: 2.60853910446167
+model: biggan-deep-512, attention: kdeformer , data_per_class: 5, fid: 30.524170769298962, is_mean_fake: 57.33393478393555, is_std_fake: 4.3676018714904785
