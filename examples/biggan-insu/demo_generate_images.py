@@ -4,6 +4,7 @@ import torch
 # import torchvision
 import sys
 import time
+import random
 import numpy as np
 from tqdm import tqdm
 if False:
@@ -26,7 +27,7 @@ else:
     from biggan_models.model_kdeformer import KDEformerBigGAN
     from biggan_models.model_performer import PerformerBigGAN
     from biggan_models.model_reformer import ReformerBigGAN
-    from biggan_models.model_sblocal import SBlocalBigGAN
+    # from biggan_models.model_sblocal import SBlocalBigGAN
 
 def get_args():
     parser = argparse.ArgumentParser()
@@ -44,9 +45,19 @@ def get_args():
     
     return parser.parse_args()
 
+def seed_everything(seed):
+    torch.manual_seed(seed)
+    torch.cuda.manual_seed(seed)
+    np.random.seed(seed)
+    random.seed(seed)
+    torch.backends.cudnn.benchmark = False
+    torch.backends.cudnn.deterministic = True
+    torch.cuda.manual_seed_all(seed)
+
 @torch.no_grad()
 def main():
     args = get_args()
+    seed_everything(args.seed)
 
     for aa, bb in args.__dict__.items():
         print(f"{aa}: {bb}")
@@ -107,8 +118,12 @@ def main():
         c_vec = class_vector[batch_idx]
 
         # Generate an image
+        # print("n_vec.sum: ", n_vec.sum())
+        # print("c_vec.sum: ", c_vec.sum())
+        # print("truncation: ", truncation)
         output = model(n_vec, c_vec, truncation)
         output = output.to('cpu')
+        # print("output.sum: ", output.sum())
 
         output_all.append(output)
 
@@ -197,18 +212,18 @@ def main():
 #     import pdb; pdb.set_trace();
 
 
-    if not args.no_store:
-        output_path = f"./generations/{model_name.replace('-','_')}/{attention}{len(labels)}{args.postfix}"
-        if not os.path.exists(output_path):
-            os.makedirs(output_path)
+    # if not args.no_store:
+    #     output_path = f"./generations/{model_name.replace('-','_')}/{attention}{len(labels)}{args.postfix}"
+    #     if not os.path.exists(output_path):
+    #         os.makedirs(output_path)
 
-        tic = time.time()
-        print("saving images....")
-        save_as_images(output_all, output_path + "/img")
-        print(f"done. ({time.time() - tic:.4f} sec)")
+    #     tic = time.time()
+    #     print("saving images....")
+    #     save_as_images(output_all, output_path + "/img")
+    #     print(f"done. ({time.time() - tic:.4f} sec)")
 
-        with open(f"{output_path}/time.txt", "a") as f:
-            f.write(f"generation_time: {time_generation} sec")
+    #     with open(f"{output_path}/time.txt", "a") as f:
+    #         f.write(f"generation_time: {time_generation} sec")
 
     # /gpfs/gibbs/project/karbasi/ih244/conda_envs/insu/lib/python3.9/site-packages/pytorch_fid/fid_score.py
 
