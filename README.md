@@ -5,11 +5,12 @@
 For a detailed description of the **Thinformer** algorithm and its strong approximation guarantees, see [Low-Rank Thinning](https://arxiv.org/pdf/2502.12063).
 
 ```bib
-@article{carrell2025low,
+@inproceedings{carrell2025lowrank,
   title={Low-Rank Thinning},
-  author={Carrell, Annabelle Michael and Gong, Albert and Shetty, Abhishek and Dwivedi, Raaz and Mackey, Lester},
-  journal={arXiv preprint arXiv:2502.12063},
-  year={2025}
+  author={Annabelle Michael Carrell and Albert Gong and Abhishek Shetty and Raaz Dwivedi and Lester Mackey},
+  booktitle={Forty-second International Conference on Machine Learning},
+  year={2025},
+  url={https://openreview.net/forum?id=iAkg2nVmvN}
 }
 ```
 
