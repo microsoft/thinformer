@@ -1,4 +1,4 @@
-# BigGAN Experiment
+# Image Generation with BigGAN Model
 
 This example folder recreates the BigGAN image generation experiment of [Low-Rank Thinning](https://arxiv.org/pdf/2502.12063) (Section 4.2).
 
