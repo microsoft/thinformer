@@ -35,7 +35,7 @@ attention_layer = ThinformerAttention()
 attn_output, attn_output_weights = attention_layer(query, key, value)
 ```
 
-For an example usage, see our [T2T-ViT ImageNet classification experiments](./examples/t2t/README.md).
+For an example usage, see our [T2T-ViT ImageNet classification experiments](./examples/t2t/README.md) and [BigGAN image generation experiments](./examples/biggan/README.md).
 
 This package has been tested with the following operating system, Python, and PyTorch combinations:
 - Ubuntu 20.04, Python 3.12.9, Torch 2.4.0
