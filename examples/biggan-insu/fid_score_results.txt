@@ -5,3 +5,22 @@ model: biggan-deep-512, attention: kde       , data_per_class: 5, fid: 30.517277
 model: biggan-deep-512, attention: reformer  , data_per_class: 5, fid: 72.13008629207229, is_mean_fake: 19.21736717224121, is_std_fake: 2.0128769874572754
 model: biggan-deep-512, attention: sblocal   , data_per_class: 5, fid: 38.46666880252741, is_mean_fake: 36.337646484375, is_std_fake: 2.60853910446167
 model: biggan-deep-512, attention: kdeformer , data_per_class: 5, fid: 30.524170769298962, is_mean_fake: 57.33393478393555, is_std_fake: 4.3676018714904785
+model: biggan-deep-512, attention: kdeformer , data_per_class: 5, fid: 30.705566929028805, is_mean_fake: 57.086524963378906, is_std_fake: 4.049035549163818
+model: biggan-deep-512, attention: kdeformer , data_per_class: 5, fid: 30.705566929028805, is_mean_fake: 57.086524963378906, is_std_fake: 4.049035549163818
+model: biggan-deep-512, attention: kde       , data_per_class: 5, fid: 30.509466206638876, is_mean_fake: 57.0899658203125, is_std_fake: 4.1230268478393555
+model: biggan-deep-512, attention: kde       , data_per_class: 5, fid: 30.509466206638876, is_mean_fake: 57.0899658203125, is_std_fake: 4.1230268478393555
+model: biggan-deep-512, attention: kdeformer , data_per_class: 5, fid: 30.705566929028805, is_mean_fake: 57.086524963378906, is_std_fake: 4.049035549163818
+model: biggan-deep-512, attention: kdeformer , data_per_class: 5, fid: 30.705566929028805, is_mean_fake: 57.086524963378906, is_std_fake: 4.049035549163818
+model: biggan-deep-512, attention: reformer  , data_per_class: 5, fid: 72.23196953118827, is_mean_fake: 19.14272117614746, is_std_fake: 2.0945537090301514
+model: biggan-deep-512, attention: exact     , data_per_class: 5, fid: 32.18271879266206, is_mean_fake: 58.368919372558594, is_std_fake: 4.212975978851318
+model: biggan-deep-512, attention: sblocal   , data_per_class: 5, fid: 38.776013588389446, is_mean_fake: 36.926063537597656, is_std_fake: 2.966123342514038
+model: biggan-deep-512, attention: thinformer, data_per_class: 5, fid: 30.536385526174456, is_mean_fake: 57.12372589111328, is_std_fake: 3.959465980529785
+model: biggan-deep-512, attention: thinformer, data_per_class: 5, fid: 30.536385526174456, is_mean_fake: 57.12372589111328, is_std_fake: 3.959465980529785
+model: biggan-deep-512, attention: thinformer, data_per_class: 5, fid: 31.590755755902194, is_mean_fake: 57.81602096557617, is_std_fake: 4.225373268127441
+model: biggan-deep-512, attention: performer , data_per_class: 5, fid: 33.58664710056013, is_mean_fake: 37.44179153442383, is_std_fake: 2.609492778778076
+model: biggan-deep-512, attention: sblocal   , data_per_class: 5, fid: 38.776013588389446, is_mean_fake: 36.926063537597656, is_std_fake: 2.966123342514038
+model: biggan-deep-512, attention: performer , data_per_class: 5, fid: 33.57683440099072, is_mean_fake: 38.067195892333984, is_std_fake: 3.434337854385376
+model: biggan-deep-512, attention: kdeformer , data_per_class: 5, fid: 30.705566929028805, is_mean_fake: 57.086524963378906, is_std_fake: 4.049035549163818
+model: biggan-deep-512, attention: kdeformer , data_per_class: 5, fid: 30.700333890127695, is_mean_fake: 56.908897399902344, is_std_fake: 4.157968044281006
+model: biggan-deep-512, attention: kdeformer , data_per_class: 5, fid: 30.700333890127695, is_mean_fake: 56.908897399902344, is_std_fake: 4.157968044281006
+model: biggan-deep-512, attention: sblocal   , data_per_class: 5, fid: 38.46709607393689, is_mean_fake: 36.83660125732422, is_std_fake: 2.9005069732666016
