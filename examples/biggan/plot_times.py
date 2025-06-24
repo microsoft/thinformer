@@ -46,9 +46,9 @@ for method in methods:
 
 # Create and save the table
 table_df = pd.DataFrame(results)
-table_path = os.path.join(output_path, 'times', 'attention_matrix_times.csv')
-table_df.to_csv(table_path, index=False)
-print(f"Saved table to {table_path}")
+# table_path = os.path.join(output_path, 'times', 'attention_matrix_times.csv')
+# table_df.to_csv(table_path, index=False)
+# print(f"Saved table to {table_path}")
 
 # Print the table in a nice format
 print("\nAttention Matrix Runtime Measurements (ms):")
