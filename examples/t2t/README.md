@@ -74,15 +74,11 @@ You can find the export of this environment in [environment.yml](environment.yml
 To obtain the accuracy numbers in Table 2 for all methods, please run:
 
 ```bash
-./slurm/accuracy.slurm DATA_PATH OUTPUT_PATH
+./slurm/accuracy.slurm /PATH/TO/IMAGENET OUTPUT_PATH
 ```
 
 To obtain the runtime numbers in Table 2 for all methods, please run:
 
 ```bash
-./slurm/runtime.slurm DATA_PATH OUTPUT_PATH
+./slurm/runtime.slurm /PATH/TO/IMAGENET OUTPUT_PATH
 ```
-
-> \[!NOTE\]
-> Here `DATA_PATH` is the directory containing the unzipped ILSVRC2012 validation dataset.
-
