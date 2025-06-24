@@ -16,8 +16,8 @@ Please follow the steps below to recreate the BigGAN experiment:
 ./slurm/generate.slurm
 ```
 
-> \[!NOTE\]
-> 
+> \[!TIP\]
+> The FID and IS scores are outputed to the console and to `fid_score_results.txt`.
 
 2. Compute and format runtimes:
 ```bash
