@@ -24,11 +24,12 @@ METHODS=(
     performer
     reformer
     kdeformer
+    sblocal
     thinformer
 )
 for method in "${METHODS[@]}"
 do
-    CMD="python runtime.py --attention $method -op $OUTPUT_PATH"
+    CMD="python runtime.py --attention $method -op $OUTPUT_PATH -n 10"
     echo $CMD
     eval $CMD
 done
