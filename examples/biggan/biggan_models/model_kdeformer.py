@@ -89,13 +89,15 @@ class KDEformerSelfAttn(nn.Module):
         key = key.unsqueeze(0).transpose(1,2)
         value = value.unsqueeze(0).transpose(1,2)
 
-        if False:
+        try:
             att_ham = self.attn(
                 key=key,
                 query=query,
                 value=value,
             )
-        else:
+            assert not torch.isnan(att_ham).any()
+        except AssertionError:
+            # Casting the higher precision usually fixes the NaN issue
             att_ham = self.attn(
                 key=key.double(),
                 query=query.double(),
