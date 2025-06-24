@@ -90,7 +90,14 @@ class PerformerSelfAttn(nn.Module):
 
         key = key.unsqueeze(0).transpose(1,2)
         value = value.unsqueeze(0).transpose(1,2)
-        att = self.attn(query=query, key=key, value=value)
+        try:
+            att = self.attn(query=query, key=key, value=value)
+            # Assert that there are no NaNs
+            assert not torch.isnan(att).any()
+        except AssertionError:
+            # Casting the higher precision usually fixes the NaN issue
+            att = self.attn(query=query.double(), key=key.double(), value=value.double())
+
         return att.squeeze(0).transpose(1,2)
 
     def forward(self, x):

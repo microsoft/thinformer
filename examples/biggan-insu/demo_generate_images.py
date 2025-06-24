@@ -27,7 +27,8 @@ else:
     from biggan_models.model_kdeformer import KDEformerBigGAN
     from biggan_models.model_performer import PerformerBigGAN
     from biggan_models.model_reformer import ReformerBigGAN
-    # from biggan_models.model_sblocal import SBlocalBigGAN
+    from biggan_models.model_sblocal import SBlocalBigGAN
+    from biggan_models.model_thinformer import ThinformerBigGAN
 
 def get_args():
     parser = argparse.ArgumentParser()
@@ -36,7 +37,7 @@ def get_args():
     parser.add_argument("--data_per_class",type=int, default=1)
     parser.add_argument("--seed",type=int, default=1)
     parser.add_argument("--batch_size",type=int, default=32)
-    parser.add_argument("--attention",type=str, default='exact', choices=['exact', 'kde', 'kdeformer', 'performer', 'reformer', 'sblocal'])
+    parser.add_argument("--attention",type=str, default='exact', choices=['exact', 'kde', 'kdeformer', 'performer', 'reformer', 'sblocal', 'thinformer'])
     parser.add_argument("--truncation",type=float, default=0.4)
     parser.add_argument("--no_store",action='store_true')
     parser.add_argument("--fid",action='store_true')
@@ -84,6 +85,8 @@ def main():
         model = ReformerBigGAN.from_pretrained(model_name)
     elif attention == 'sblocal':
         model = SBlocalBigGAN.from_pretrained(model_name)
+    elif attention == 'thinformer':
+        model = ThinformerBigGAN.from_pretrained(model_name)
     else:
         raise NotImplementedError("Invalid attention option")
 

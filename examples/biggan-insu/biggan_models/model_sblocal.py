@@ -74,7 +74,7 @@ class SBlocalSelfAttn(nn.Module):
         self.softmax  = nn.Softmax(dim=-1)
         self.gamma = nn.Parameter(torch.zeros(1))
 
-        # self.attn = SBLocalAttention(local_context=64, dim_heads=64, nb_features=128, softmax_temp=1.)
+        self.attn = SBLocalAttention(local_context=32, dim_heads=in_channels//8, nb_features=128, softmax_temp=1.)
 
     def forward(self, x):
         _, ch, h, w = x.size()
@@ -99,10 +99,9 @@ class SBlocalSelfAttn(nn.Module):
         key = phi.permute(0,2,1).unsqueeze(0).transpose(1,2)
         value = g.permute(0,2,1).unsqueeze(0).transpose(1,2)
 
-        attn_func = SBLocalAttention(local_context=32, dim_heads=query.shape[-1], nb_features=128, softmax_temp=1.)
         att = []
         for i in range(4):
-            att_i = attn_func(
+            att_i = self.attn(
                 query=query[:,1024*i:1024*(i+1),:,:],
                 key=key,
                 value=value
