@@ -1,40 +1,26 @@
 # BigGAN Experiment
 
-Setup instructions:
+This example folder recreates the BigGAN image generation experiment of [Low-Rank Thinning](https://arxiv.org/pdf/2502.12063) (Section 4.2).
 
-```bash
-pip install pytorch-fid
-```
+These experiments were carried out using Python 3.12.9, PyTorch 2.6.0, and an Ubuntu 22.04.5 LTS server with an Intel(R) Xeon(R) Gold 5218 CPU Processor, 100 GB RAM, and a single NVIDIA A6000 GPU (48 GB memory, CUDA 12.1, driver version 530.30.02). See [environment.yml](./environment.yml) for our reference conda environment.
+
+The settings and implementations for all methods other than Thinformer were provided by the authors of KDEformer (Zandieh et al., 2023), and our experiment code builds on their open-source repository https://github.com/majid-daliri/kdeformer.
 
 ## Results
 
 Please follow the steps below to recreate the BigGAN experiment: 
 
-1. Generate images:
+1. Compute FID and IS scores:
 
 ```bash
-python compress_bigGAN_script.py --num_classes 1000 --data_per_class 5 --beta 0.5 --attention METHOD -op OUTPUT_PATH
+./slurm/generate.slurm
 ```
-
-2. Compute FID scores:
 
 > \[!NOTE\]
-> This following script expects a file containing the ImageNet statistics at `OUTPUT_PATH/scores/imagenet_statistics.npz`. If this file doesn't exist, it will be created.
+> 
 
+2. Compute and format runtimes:
 ```bash
-python compute_fid.py -dp PATH/TO/IMAGENET/val -op OUTPUT_PATH --attention METHOD
+./slurm/runtime.slurm OUTPUT_PATH
+python plot_times.py -op OUTPUT_PATH
 ```
-
-3. Compute Inception scores:
-
-```bash
-python compute_inception.py -op OUTPUT_PATH --attention METHOD
-```
-
-4. Compute runtimes:
-```bash
-python runtime.py --attention METHOD -op OUTPUT_PATH
-```
-Optional:
-- `--num_runs=RUNS` to get +- std on timings.
-- `-g=OVERSAMPLING_PARAM` when METHOD=thinformer
