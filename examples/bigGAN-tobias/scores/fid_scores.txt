@@ -1,5 +1,0 @@
-Attention Method: exact
-FID: 23.653665675241655
-
-Attention Method: kdeformer
-FID: 21.549084253770843

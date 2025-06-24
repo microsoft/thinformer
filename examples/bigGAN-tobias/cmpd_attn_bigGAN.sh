@@ -1,1 +1,0 @@
-python compress_bigGAN_script.py --num_classes 10 --data_per_class 5 --beta 0.5
