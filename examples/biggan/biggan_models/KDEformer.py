@@ -92,7 +92,7 @@ class KDEformer(torch.nn.Module):
 
     def calc_A_res(self, key, query, Q_sort_idx, value, batch_size, head_size):
         Gram_V = torch.einsum('bhnt,bhnd->bhtd', value, value)
-        V_norm = power_method(Gram_V).unsqueeze(2)
+        V_norm = power_method(Gram_V, rng=torch.Generator(query.device).manual_seed(1234)).unsqueeze(2)
 
         P = torch.linalg.norm(value, dim=3) / V_norm
         P += torch.ones_like(P) / key.shape[2]
@@ -167,8 +167,7 @@ class KDEformer(torch.nn.Module):
         value = rearrange(value, 'b s h d -> b h s d').contiguous()
 
         proj_shape = (query.shape[0], query.shape[1], query.shape[3])
-
-        lsh = Angular_LSH(self.num_projs, proj_shape, device=query.device, dtype=query.dtype)
+        lsh = Angular_LSH(self.num_projs, proj_shape, device=query.device, dtype=query.dtype, rng=torch.Generator(query.device).manual_seed(1234))
         _, K_sort_idx = torch.sort(lsh.hash(key), dim=2)
         _, Q_sort_idx = torch.sort(lsh.hash(query), dim=2)
 
