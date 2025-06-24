@@ -12,13 +12,13 @@ METHODS=(
     exact
     performer
     reformer
-    sblocal
     kdeformer
+    sblocal
     thinformer
 )
 for method in "${METHODS[@]}"
 do
-    CMD="python demo_generate_images_insu.py --data_per_class 5 --fid --attention $method"
+    CMD="python demo_generate_images.py --data_per_class 5 --fid --attention $method"
     echo $CMD
     eval $CMD
 done
