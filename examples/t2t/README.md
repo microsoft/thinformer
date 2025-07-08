@@ -11,7 +11,7 @@ The settings and implementations for all methods other than Thinformer were prov
 1. Download the ILSVRC2012 validation dataset from https://www.image-net.org/download.php. You will need to login and submit the terms of access. The total size is roughly 6.3 GB.
 
 2. Extract validation data using [extract_ILSVRC.sh](extract_ILSVRC.sh).
-   
+
 3. Download the pretrained T2T-ViT model from the [T2T-ViT repo](https://github.com/yitu-opensource/T2T-ViT/releases). We use the ``82.6_T2T_ViTt_24`` model which can be downloaded by running the following command:
 ```sh
 mkdir -p checkpoints
@@ -28,12 +28,14 @@ the compiler CUDA version (reported by `nvcc --version`), and PyTorch CUDA versi
 ```bash
 # Create environment with nvcc, cudart, and cuda-toolkit for scatterbrain
 yes | conda create -n scatter python=3.12 cuda-nvcc cuda-cudart cuda-toolkit pip -c nvidia
-# Activate environment          
+# Activate environment
 conda activate scatter
 # Install torch version that matches local cuda version (12.8)
 pip install --pre torch torchvision torchaudio --index-url https://download.pytorch.org/whl/nightly/cu128
-# Install scatterbrain       
-git clone https://github.com/ag2435/fast-transformers.git
+# Install scatterbrain
+git clone https://github.com/idiap/fast-transformers.git
+# update this line (https://github.com/idiap/fast-transformers/blob/2ad36b97e64cb93862937bd21fcc9568d989561f/setup.py#L81) for Nvidia Ampere GPUs
+sed -i 's/return \["-arch=compute_60"\]/return ["-arch=compute_80"]/' fast-transformers/setup.py
 pip install fast-transformers/
 # Install Python dependencies of T2T-ViT
 pip install "timm==0.3.4" pyyaml
@@ -47,12 +49,15 @@ cp helpers.py $CONDA_PREFIX/lib/python3.12/site-packages/timm/models/layers/help
 pip install git+https://github.com/microsoft/thinformer.git
 ```
 
+> \[!TIP\]
+> On Nvidia Hopper GPUs (e.g., H100), `sed -i 's/return \["-arch=compute_60"\]/return ["-arch=compute_80"]/' fast-transformers/setup.py` should be replaced by `sed -i 's/return \["-arch=compute_60"\]/return ["-arch=compute_90"]/' fast-transformers/setup.py`.
+
 You can find the export of this environment in [environment-scatter.yml](environment-scatter.yml).
 
 ### Prepare conda environment with dependencies, excluding Scatterbrain
 
 ```bash
-# Create conda environment 
+# Create conda environment
 conda create -n thinformer python=3.12
 conda activate thinformer
 # Install Python dependencies of T2T-ViT
