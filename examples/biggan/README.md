@@ -12,7 +12,7 @@ We provide the Imagenet Validation statistics at [imagenet_val_inception_moments
 
 ## Dependencies
 
-Please follow the instructions at [REAMDE.md](../t2t/README.md#dependencies).
+Please follow the [t2t dependency instructions](../t2t/README.md#dependencies) to prepare a conda environment with needed dependencies.
 
 ## Results
 
