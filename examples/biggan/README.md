@@ -6,9 +6,17 @@ These experiments were carried out using Python 3.12.9, PyTorch 2.6.0, and an Ub
 
 The settings and implementations for all methods other than Thinformer were provided by the authors of KDEformer (Zandieh et al., 2023), and our experiment code builds on their open-source repository https://github.com/majid-daliri/kdeformer.
 
+## Prerequisites
+
+We provide the Imagenet Validation statistics at [imagenet_val_inception_moments.npz](./imagenet_val_inception_moments.npz), so there is no need to download Imagenet for the BigGAN experiment. Similarly, model checkpoints will be automatically downloaded.
+
+## Dependencies
+
+Please follow the instructions at [REAMDE.md](../t2t/README.md#dependencies).
+
 ## Results
 
-Please follow the steps below to recreate the BigGAN experiment: 
+Please follow the steps below to recreate the BigGAN experiment:
 
 1. Compute FID and IS scores:
 
