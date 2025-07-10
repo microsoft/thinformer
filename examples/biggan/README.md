@@ -12,7 +12,10 @@ We provide the Imagenet Validation statistics at [imagenet_val_inception_moments
 
 ## Dependencies
 
-Please follow the [t2t dependency instructions](../t2t/README.md#dependencies) to prepare a conda environment with needed dependencies.
+To prepare a conda environment with all dependencies installed, first follow the [t2t dependency instructions](../t2t/README.md#dependencies). Then execute the following command: 
+```bash
+pip install boto3 requests scipy
+```
 
 ## Results
 
