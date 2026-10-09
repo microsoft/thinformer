@@ -1,5 +1,8 @@
 # Image Generation with BigGAN Model
 
+> [!NOTE]
+> Update (9/13/26): We now parameterize our PyTorch Thinformer implementation in terms of the $\log_2$ coreset size $h$ as opposed to the oversampling parameter $g$ from [Low-Rank Thinning](https://arxiv.org/pdf/2502.12063).
+
 This example folder recreates the BigGAN image generation experiment of [Low-Rank Thinning](https://arxiv.org/pdf/2502.12063) (Section 4.2).
 
 These experiments were carried out using Python 3.12.9, PyTorch 2.6.0, and an Ubuntu 22.04.5 LTS server with an Intel(R) Xeon(R) Gold 5218 CPU Processor, 100 GB RAM, and a single NVIDIA A6000 GPU (48 GB memory, CUDA 12.1, driver version 530.30.02). See [environment.yml](./environment.yml) for our reference conda environment.
@@ -14,7 +17,7 @@ We provide the Imagenet Validation statistics at [imagenet_val_inception_moments
 
 To prepare a conda environment with all dependencies installed, first follow the [t2t dependency instructions](../t2t/README.md#dependencies). Then execute the following command: 
 ```bash
-pip install boto3 requests scipy
+pip install boto3 requests scipy==1.15.2
 ```
 
 ## Results

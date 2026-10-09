@@ -53,7 +53,7 @@ def get_attn_cfg1(attn1: str, args: ArgumentParser | None = None) -> dict:
     elif attn1 == "thinformer":
         return {
             "name": "thinformer",
-            "g": 2,
+            "h": 7,
             "use_torch_spda": False,
         }
 
@@ -108,7 +108,7 @@ def get_attn_cfg2(attn2: str, args: ArgumentParser | None = None) -> dict:
     elif attn2 == "thinformer":
         return {
             "name": "thinformer",
-            "g": 4,
+            "h": 8,
             "use_torch_spda": False,
         }
 

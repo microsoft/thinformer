@@ -1,8 +1,10 @@
 # Thinformer
 
-**Thinformer** provides a fast, high-quality approximation to the scaled dot-product attention mechanism in Transformers.
+`thinformer` is a Python package for approximating attention cheaply and accurately. 
 
-For a detailed description of the **Thinformer** algorithm and its strong approximation guarantees, see [Low-Rank Thinning](https://arxiv.org/pdf/2502.12063).
+It weds the **Thinformer** method for unmasked attention and **Thinformer Express** for causal attention with Triton implementations for I/O-aware efficiency.
+
+See [Low-Rank Thinning](https://arxiv.org/pdf/2502.12063) and [Express Language Modeling](https://arxiv.org/abs/2606.10944) for a detailed description of the methods and their strong attention approximation guarantees.
 
 ```bib
 @inproceedings{carrell2025lowrank,
@@ -11,6 +13,16 @@ For a detailed description of the **Thinformer** algorithm and its strong approx
   booktitle={Forty-second International Conference on Machine Learning},
   year={2025},
   url={https://openreview.net/forum?id=iAkg2nVmvN}
+}
+```
+
+```bib
+@inproceedings{gong2026express,
+  title={Express Language Modeling},
+  author={Gong, Albert and Carrell, Annabelle Michael and Dwivedi, Raaz and Mackey, Lester},
+  booktitle = {Advances in Neural Information Processing Systems (NeurIPS)},
+  volume    = {39},
+  year      = {2026},
 }
 ```
 
@@ -23,24 +35,31 @@ pip install git+https://github.com/microsoft/thinformer.git
 Then, simply use `ThinformerAttention` as a drop-in replacement for a standard attention layer:
 
 ```python
-from thinformer import ThinformerAttention
+from thinformer.triton import ThinformerAttention
 
 attention_layer = ThinformerAttention()
 
-# Assumes:
+# In non-causally masked attention, we assume:
 # - query has shape (B, T, H, E)
 # - key has shape (B, S, H, E)
 # - value has shape (B, S, H, D)
-
 attn_output, attn_output_weights = attention_layer(query, key, value)
+
+# In causally masked attention, we assume:
+# - query has shape (B, T, H, E)
+# - key has shape (B, T, H, E)
+# - value has shape (B, T, H, D)
+attn_output, attn_output_weights = attention_layer(query, key, value, causal=True)
 ```
 
-For example usages, see our [T2T-ViT ImageNet classification experiments](./examples/t2t/README.md) and [BigGAN image generation experiments](./examples/biggan/README.md).
+For example usages, see our [T2T-ViT ImageNet classification experiments](./examples/t2t/README.md), [BigGAN image generation experiments](./examples/biggan/README.md), [prefill experiments](./examples/prefill/README.md), [KV cache compression experiments](./examples/kvcache/README.md), and [long-form decoding experiments](./examples/decoding/README.md).
 
 This package has been tested with the following operating system, Python, and PyTorch combinations:
 - Ubuntu 20.04, Python 3.12.9, Torch 2.4.0
 - Ubuntu 20.04, Python 3.12.9, Torch 2.6.0
 - Ubuntu 22.04.5, Python 3.12.9, Torch 2.8.0
+- Ubuntu 24.04.4, Python 3.12.13, Torch 2.10.0
+- Ubuntu 24.04.4, Python 3.13.9, Torch 2.10.0
 
 ## Contributing
 

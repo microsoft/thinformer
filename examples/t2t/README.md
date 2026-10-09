@@ -1,5 +1,8 @@
 # ImageNet Classification with T2T-ViT model
 
+> [!NOTE]
+> Update (9/13/26): We now parameterize our PyTorch Thinformer implementation in terms of the $\log_2$ coreset size $h$ as opposed to the oversampling parameter $g$ from [Low-Rank Thinning](https://arxiv.org/pdf/2502.12063).
+
 This example folder recreates the T2T-ViT ImageNet classification experiments of [Low-Rank Thinning](https://arxiv.org/pdf/2502.12063) (Section 4.2).
 
 These experiments were carried out using Python 3.12.9, PyTorch 2.8.0.dev20250407+cu128, and an Ubuntu 22.04.5 LTS server with an AMD EPYC 7V13 64-Core Processor, 220 GB RAM, and a single NVIDIA A100 GPU (80 GB memory, CUDA 12.8, driver version 570.124.04).

@@ -111,13 +111,13 @@ def load_checkpoint(
 
 # Load model using specified attention method
 def get_model(
-    model_name: str, attention: str, g: int | None = None
+    model_name: str, attention: str, h: int | None = None
 ) -> torch.nn.Module:
     """Load the T2T-ViT model with the specified attention methods.
     Args:
         model_name: str, name of the model to load
         attention: str, attention method to use
-        g: int, oversampling factor for KH-Compress. If None, use the default value in the model config JSON file.
+        h: int, log2 coreset size for KH-Compress. If None, use the default value in the model config JSON file.
     Returns:
         model: torch.nn.Module, the loaded model
     """
@@ -135,7 +135,7 @@ def get_model(
     elif attention == 'sblocal':
         model = SBlocalBigGAN.from_pretrained(model_name)
     elif attention == 'thinformer':
-        model = ThinformerBigGAN.from_pretrained(model_name, g=g)
+        model = ThinformerBigGAN.from_pretrained(model_name, h=h)
     else:
         raise NotImplementedError("Invalid attention option")
     return model

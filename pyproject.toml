@@ -5,7 +5,7 @@ build-backend = "setuptools.build_meta"
 [project]
 name = "thinformer"
 description = ""
-version = "0.0.0"
+version = "1.0.0"
 authors = [
     {name="Annabelle Michael Carrell", email="ac2411@cam.ac.uk"},
     {name="Albert Gong", email="agong@cs.cornell.edu"},
@@ -35,13 +35,10 @@ Repository = "https://github.com/microsoft/thinformer.git"
 exclude = [
     ".git",
     "__pycache__",
-    "examples/t2t/imagenet.py",
-    "examples/t2t/model", # ignore baseline code
-    "examples/t2t/helpers.py",
+    "examples", # research/baseline scripts; lint core code only
 ]
 
 lint.ignore = [
-    "ANN101",
     "ANN401",
     "N801",
     "E203",
@@ -64,7 +61,6 @@ lint.ignore = [
     "D203",
     "D213",
     "ANN204",
-    "ANN102",
 ]
 lint.select = ["D", "E", "F", "N", "ANN"]
 lint.fixable = [
@@ -114,6 +110,13 @@ lint.fixable = [
     "YTT",
 ]
 lint.unfixable = []
+
+# Triton kernels: annotating tl.constexpr/stride params of @triton.jit
+# functions is unidiomatic; document/annotate only the Python-side wrappers.
+[tool.ruff.lint.per-file-ignores]
+"thinformer/triton/block_halve.py" = ["ANN", "D417"]
+"thinformer/triton/wtd_attn.py" = ["ANN", "D417"]
+"thinformer/triton/flash_attn.py" = ["ANN", "D417"]
 
 [tool.pyright]
 venv = ".venv"

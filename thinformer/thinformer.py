@@ -4,26 +4,23 @@ import torch
 from torch import (
     nn,
     exp_,
-    narrow,
     einsum,
     zeros,
     arange,
     empty,
-    cat,
     logical_xor,
     amax,
     square,
     cummax,
-    tensor,
     softmax,
     inf,
 )
 from torch import sqrt as torch_sqrt
-from torch import log as torch_log
 from torch import bool as torch_bool
 from torch.linalg import vector_norm
 from torch.nn.functional import scaled_dot_product_attention
 from math import sqrt, log
+
 
 def log4_largest_power_of_four(n: int) -> int:
     """Returns log_4 of the largest power of four less than or equal to n.
@@ -39,8 +36,7 @@ def log4_largest_power_of_four(n: int) -> int:
 
 
 def exp_kernel(
-    key: torch.Tensor, value: torch.Tensor, shift: torch.Tensor, 
-    b_sqd: torch.Tensor
+    key: torch.Tensor, value: torch.Tensor, shift: torch.Tensor, b_sqd: torch.Tensor
 ) -> torch.Tensor:
     """Returns tensor of weighted exponential kernel matrices
     kernel_mat[b,a,h]
@@ -160,8 +156,10 @@ def halve(
     # Return corresponding half of keys and values
     S_over_2 = S // 2
     coreset = coreset.transpose(2, 3).unsqueeze(-1)
-    return (key.gather(2, coreset.expand(B, A, S_over_2, H, E)), 
-        value.gather(2, coreset.expand(B, A, S_over_2, H, D)))
+    return (
+        key.gather(2, coreset.expand(B, A, S_over_2, H, E)),
+        value.gather(2, coreset.expand(B, A, S_over_2, H, D)),
+    )
 
 
 @torch.compile(mode="reduce-overhead", fullgraph=True)
@@ -186,7 +184,7 @@ def _khcompress(
         symmetrize: if True, randomly choose between coreset and its complement
 
     Returns:
-        key coreset tensor of shape [B, S//2^m, H, E] and 
+        key coreset tensor of shape [B, S//2^m, H, E] and
         value coreset tensor of shape [B, S//2^m, H, D]
 
     """
@@ -196,8 +194,7 @@ def _khcompress(
     shift = shift.permute((0, 2, 1, 3))
     shift = shift.unsqueeze(1)
     # Max squared value vector inf norm
-    b_sqd = vector_norm(
-        value, dim=(1, 3), ord=inf, keepdim=True).unsqueeze(-1) ** 2
+    b_sqd = vector_norm(value, dim=(1, 3), ord=inf, keepdim=True).unsqueeze(-1) ** 2
 
     # Combine keys and values
     B, _, H, E = key.shape
@@ -225,7 +222,7 @@ def khcompress(
 ) -> torch.Tensor:
     """KH-Compress(g)
 
-    Computes a coreset of size n_out = min(n, 2^g sqrt(n)), where n is the 
+    Computes a coreset of size n_out = min(n, 2^g sqrt(n)), where n is the
     largest power of 4 less than or equal to S, the input sequence length.
 
     NOTE: This implementation first standard thins the input sequence to a size n,
@@ -241,39 +238,36 @@ def khcompress(
     Returns:
         key coreset Tensor of shape [B, n_out, H, E] and
         value coreset Tensor of shape [B, n_out, H, D]
-        
+
     """
     S = key.shape[1]
     n = 4**log4_n
     four_to_g_plus_1 = int(4 ** (g + 1))
-    
+
     # Standard thin keys and values down to sequence length n
     stride = S // n
     n_times_stride = n * stride
-    key = key[:, 0 : n_times_stride : stride]
-    value = value[:, 0 : n_times_stride : stride]
+    key = key[:, 0:n_times_stride:stride]
+    value = value[:, 0:n_times_stride:stride]
 
     # If n <= 2^g sqrt(n), no further thinning is needed
-    # Since n is a power of four, equivalently, check if 
+    # Since n is a power of four, equivalently, check if
     # n < 4^{g+1}
     if n < four_to_g_plus_1:
         return key, value
 
     # Compute number of Compress halving rounds
     num_halving_rounds = int(log4_n - g)
-    
+
     # Compute KH-Compress base halving probability parameter
     halve_prob = delta / four_to_g_plus_1 / num_halving_rounds / n
 
-    # NOTE: To prevent overwriting, we call 
-    # torch.compiler.cudagraph_mark_step_begin() 
+    # NOTE: To prevent overwriting, we call
+    # torch.compiler.cudagraph_mark_step_begin()
     torch.compiler.cudagraph_mark_step_begin()
     key, value = _khcompress(
-        key, value,
-        four_to_g_plus_1,
-        num_halving_rounds,
-        halve_prob,
-        symmetrize=True)
+        key, value, four_to_g_plus_1, num_halving_rounds, halve_prob, symmetrize=True
+    )
     return key, value
 
 
@@ -309,7 +303,7 @@ class ThinformerAttention(nn.Module):
 
     def __init__(
         self,
-        g: int = 2,
+        h: int,
         scale: float | None = None,
         use_torch_spda: bool = False,
         **kwargs: dict,
@@ -317,18 +311,18 @@ class ThinformerAttention(nn.Module):
         """Initialize the ThinformerAttention module.
 
         Args:
-            g (int): oversampling parameter, a nonnegative integer
-            scale (float): scale for dot-product attention. 
+            h (int): log2 of coreset size
+            scale (float): scale for dot-product attention.
               If `None`, scale is chosen as 1/sqrt(key.shape[-1]) in forward.
-            use_torch_spda (bool): if True, use 
+            use_torch_spda (bool): if True, use
               torch.nn.functional.scaled_dot_product_attention,
-              which automatically optimizes the attention computation for GPUs, 
+              which automatically optimizes the attention computation for GPUs,
               for the final attention computation.
             kwargs: placeholder for other arguments
 
         """
         super().__init__()
-        self.g = g
+        self.h = h
         self.scale = scale
         self.use_torch_spda = use_torch_spda
 
@@ -341,10 +335,10 @@ class ThinformerAttention(nn.Module):
         """The forward pass of the ThinformerAttention module comprises
         two steps:
         1. Select a subset of the key and value pairs using KH-Compress.
-           The size of this subset is 2^g sqrt(S), where S is the number
-           of key-value pairs and g is the oversampling parameter.
+           The size of this subset is 2^h sqrt(S), where S is the number
+           of key-value pairs and h is the log2 of the coreset size.
         2. For each query vector, only attend to the selected key and value
-           pairs. The computational complexity of this step is 2^g sqrt(S) * T.
+           pairs. The computational complexity of this step is 2^h * T.
 
         NOTE: the second step can be computed using a generic scaled dot-
         product attention implementation or an optimized implementation,
@@ -363,14 +357,14 @@ class ThinformerAttention(nn.Module):
               softmax(query * tranpose(key) * softmax_temp)
 
         """
-        # Compute squareroot of softmax temperature 
+        # Compute squareroot of softmax temperature
         # for the attention that A = softmax(query * key * softmax_temp)
         E = key.shape[-1]
         sqrt_softmax_temp = sqrt(self.scale or 1 / sqrt(E))
         S = key.shape[1]
         log4_n = log4_largest_power_of_four(S)
-        key, value = khcompress(key * sqrt_softmax_temp, value, 
-                                log4_n, g=self.g)
+        g = self.h - log4_n
+        key, value = khcompress(key * sqrt_softmax_temp, value, log4_n, g=g)
         key = key * sqrt_softmax_temp
 
         if self.use_torch_spda:
