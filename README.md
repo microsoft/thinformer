@@ -17,12 +17,12 @@ See [Low-Rank Thinning](https://arxiv.org/pdf/2502.12063) and [Express Language 
 ```
 
 ```bib
-@inproceedings{gong2026express,
+@inproceedings{gong2027express,
   title={Express Language Modeling},
   author={Gong, Albert and Carrell, Annabelle Michael and Dwivedi, Raaz and Mackey, Lester},
   booktitle = {Advances in Neural Information Processing Systems (NeurIPS)},
   volume    = {39},
-  year      = {2026},
+  year      = {2027},
 }
 ```
 
