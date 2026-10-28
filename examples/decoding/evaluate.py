@@ -218,7 +218,7 @@ class EvaluationRunner:
             torch.cuda.manual_seed_all(self.config.seed)
             torch.backends.cudnn.deterministic = True
             torch.backends.cudnn.benchmark = False
-        logger.info(f"Set deterministic seeds to {self.config.seed}")
+        logger.debug(f"Set deterministic seeds to {self.config.seed}")
 
     def _setup_logging(self):
         """Configures the logging level based on the config."""
@@ -417,6 +417,8 @@ class EvaluationRunner:
             question = row["question"]
             answer_prefix = row["answer_prefix"]
             max_new_tokens = self.config.max_new_tokens or row["max_new_tokens"]
+            # Reseed per sample so results don't depend on batch size or position (matches runtime.py)
+            self._setup_deterministic_seeds()
             output = self.pipeline(
                 context,
                 question=question,

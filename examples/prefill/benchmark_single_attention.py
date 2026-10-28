@@ -225,6 +225,7 @@ def run_benchmark_out_of_network(
     input_source: str = "random",
     model_name: str = "THUDM/chatglm2-6b-32k",
     save_outputs: bool = False,
+    attn_outputs_dir: str = "attn_outputs",
     **kwargs: dict,
 ) -> dict[str, list[float]]:
     """Run the benchmark for a single attention layer.
@@ -248,7 +249,8 @@ def run_benchmark_out_of_network(
             sampled word embeddings of `model_name`
         model_name (str): model whose embeddings seed 'glm_embed' inputs
         save_outputs (bool): dump the attention output of the last timed run
-            to Out_data_sweep[_<input_source>]/ for compute_maxnorm_truncate.py
+            to `attn_outputs_dir` for compute_maxnorm_truncate.py
+        attn_outputs_dir (str): directory for the dumped attention outputs
         kwargs (dict): additional keyword args
 
     Returns:
@@ -349,7 +351,7 @@ def run_benchmark_out_of_network(
             times[event_name] = [sum(x) for x in times[event_name]]
         if save_outputs:
             save_attention_output(
-                out, attn_method, h, seq_len, input_source
+                out, attn_method, h, seq_len, input_source, attn_outputs_dir
             )
     return times, usage
 
@@ -360,13 +362,13 @@ def save_attention_output(
     h: int,
     seq_len: int,
     input_source: str,
+    out_dir: str,
 ) -> str:
     """Dump one attention output as float16 (B, N, H, D) for the max-norm
     error analysis (compute_maxnorm_truncate.py).
 
-    Files go to Out_data_sweep/ (random inputs) or Out_data_sweep_<input_source>/
-    as Out_layer_<method>[_h<h>]_seq<seq_len>.npz with keys "out" and
-    "layout" (= "bnhd"). Only Thinformer outputs depend on h, so exact and the
+    Files go to `out_dir` as Out_layer_<method>[_h<h>]_seq<seq_len>.npz with
+    keys "out" and "layout" (= "bnhd"). Only Thinformer outputs depend on h, so exact and the
     other methods get no h tag and are shared across h.
     """
     if isinstance(out, tuple):  # ThinformerAttentionTriton returns (out, None)
@@ -374,9 +376,6 @@ def save_attention_output(
     if attn_method in ("exact", "hyper-cuda"):
         # these kernels take/return (B, H, N, D); bring to the (B, N, H, D) layout
         out = out.transpose(1, 2)
-    out_dir = (
-        "Out_data_sweep" if input_source == "random" else f"Out_data_sweep_{input_source}"
-    )
     os.makedirs(out_dir, exist_ok=True)
     h_tag = f"_h{h}" if attn_method.startswith("thinformer") else ""
     path = os.path.join(out_dir, f"Out_layer_{attn_method}{h_tag}_seq{seq_len}.npz")
@@ -420,7 +419,7 @@ parser.add_argument(
     "--save_outputs",
     action="store_true",
     help="(out-of-network only) dump the attention output of the last timed "
-    "run to Out_data_sweep[_<input_source>]/ for compute_maxnorm_truncate.py",
+    "run to <output_path>/attn_outputs/<input_source>/ for compute_maxnorm_truncate.py",
 )
 args = parser.parse_args()
 
@@ -483,6 +482,10 @@ output_path = args.output_path
 os.makedirs(output_path, exist_ok=True)
 times_dir = os.path.join(output_path, "times")
 os.makedirs(times_dir, exist_ok=True)
+if not in_network:
+    extra_kwargs["attn_outputs_dir"] = os.path.join(
+        output_path, "attn_outputs", input_source
+    )
 # Include seq_len in the filename when a single sequence length is requested, so that
 # per-seq_len runs can co-exist in one output dir. When --seq_len is omitted, the script
 # loops over all seq_lens into one combined CSV, so the suffix is empty (filename unchanged).

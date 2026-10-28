@@ -249,9 +249,10 @@ def _halve_K(
     """
     # pdb.set_trace()
     # ------------------------------------------------------------
-    # Create pointers to the 0-th row of Kdiff
+    # Create pointers to the 0-th column of Kdiff. Row n of Kdiff uses shift[n], so
+    # column i holds Kdiff[n, i] on the same scale as coreset_sum_diff[n]
     offs_Kdiff_n = tl.arange(0, BLOCK_SIZE_M // 2)
-    Kdiff_row_ptrs = Kdiff_ptr + (offs_Kdiff_n[None, :] * stride_Kdiff_n)
+    Kdiff_col_ptrs = Kdiff_ptr + (offs_Kdiff_n[None, :] * stride_Kdiff_m)
     # Get pointers to coreset_sum_diff accumulator
     offs_coreset_sum_diff_m = tl.arange(0, BLOCK_SIZE_M // 2)
     coreset_sum_diff_ptrs = coreset_sum_diff_ptr + (
@@ -299,13 +300,13 @@ def _halve_K(
         )
         # pdb.set_trace()
         #  -- update coreset_sum_diff and eta --
-        # Load the i-th row of Kdiff
-        Kdiff_row_i = tl.load(
-            Kdiff_row_ptrs, mask=offs_Kdiff_n[None, :] < (M // 2), other=0.0
+        # Load the i-th column of Kdiff
+        Kdiff_col_i = tl.load(
+            Kdiff_col_ptrs, mask=offs_Kdiff_n[None, :] < (M // 2), other=0.0
         )
         # Update coreset_sum_diff
         eta = 1 - 2 * swap_point
-        coreset_sum_diff = coreset_sum_diff + eta * Kdiff_row_i
+        coreset_sum_diff = coreset_sum_diff + eta * Kdiff_col_i
         # Write back coreset_sum_diff!!!
         tl.store(
             coreset_sum_diff_ptrs,
@@ -315,8 +316,8 @@ def _halve_K(
         # Write back the swap_points
         tl.store(swap_points_ptr + i * stride_swap_points_m, swap_point)
         # -- advance ptrs --
-        # Advance the Kdiff pointer by one row
-        Kdiff_row_ptrs += stride_Kdiff_m
+        # Advance the Kdiff pointer by one column
+        Kdiff_col_ptrs += stride_Kdiff_n
     return rt_diag_cummax
 
 
@@ -593,6 +594,8 @@ def _batch_halve_inner(
         ]
     ],
     key=["M", "N", "E", "D"],
+    # psi is accumulated in place, so autotune benchmark runs must not compound it
+    restore_value=["coreset_sum_diff_ptr", "shift_ptr"],
 )
 @triton.jit
 def _batch_flash_psi(
@@ -688,6 +691,21 @@ def _batch_flash_psi(
     if INIT:
         # Overwrite instead of `*= 0`: torch.empty garbage may be NaN/Inf
         m_i = tl.zeros_like(m_i)
+    else:
+        # Start from the partial psi accumulated over previous column blocks
+        # (stored with shift m_i) instead of discarding it
+        offs_prev_psi_k = tl.arange(0, MIN_BLOCK_SIZE)
+        prev_psi_ptrs = coreset_sum_diff_ptr + (
+            pid_b * stride_coreset_sum_diff_b
+            + pid_a * stride_coreset_sum_diff_a
+            + stride_coreset_sum_diff_m * offs_shift_m[:, None]
+            + stride_coreset_sum_diff_k * offs_prev_psi_k[None, :]
+        )
+        acc = tl.load(
+            prev_psi_ptrs,
+            mask=shift_mask[:, None] & (offs_prev_psi_k[None, :] < 1),
+            other=0.0,
+        )
 
     # Load the input_indices for the m-th row block of the a-th halving problem of the b-th batch
     offs_input_indices_m = (pid_m * BLOCK_SIZE_M + tl.arange(0, BLOCK_SIZE_M)) % M
