@@ -9,14 +9,16 @@ We take the cumulative (prefix) max over positions per sample, then the median
 (and 25%/75% quantiles) over the (B, H) sample axis, and plot the guarantee-scaled
 quantity  max_{m<=n} ||o_m - o_hat_m||_inf / sqrt(log n * log log n)  vs n.
 
-One curve is drawn per Thinformer Express output found in --data_dir for
+One curve is drawn per Thinformer Express output found in
+<output_path>/attn_outputs/<input_source>/ for
 --src_seq, all compared against the single shared exact reference, so the
-settings (log2 target cache sizes h) can be overlaid on one figure.
+settings (log2 target cache sizes h) can be overlaid on one figure, saved to
+<output_path>/figures/maxnorm_trunc_<input_source>.pdf.
 
 Data layout (written by `benchmark_single_attention.py --save_outputs`, one
 approx file per h, plus the shared exact reference), all key "out":
-    <data_dir>/Out_layer_thinformer_triton_h<H>_seq<SRC>.npz   approx, (B, N, H, D)
-    <data_dir>/Out_layer_exact_seq<SRC>.npz                    ref
+    <output_path>/attn_outputs/<input_source>/Out_layer_thinformer_triton_h<H>_seq<SRC>.npz   approx, (B, N, H, D)
+    <output_path>/attn_outputs/<input_source>/Out_layer_exact_seq<SRC>.npz                    ref
 A "layout" key ("bnhd" / "bhnd") says how the array is laid out. Legacy dumps
 without it are (B, H, N, D) for exact and (B, N, H, D) otherwise, and legacy
 approx files named Out_layer_express_triton_2_geps<G>_seq<SRC>.npz are read
@@ -31,9 +33,8 @@ exact reference once, and thinformer_triton once per h you want to overlay:
         --input_source glm_embed --save_outputs
 
 Usage (run from examples/prefill):
-    python compute_maxnorm_truncate.py --out maxnorm_trunc_sweep_glm_embed.pdf \\
-        --plot_stride 1 --data_dir Out_data_sweep_glm_embed
-    python compute_maxnorm_truncate.py --data_dir Out_data_sweep_glm_embed --h 8 9 10   # subset
+    python compute_maxnorm_truncate.py -op out-test --plot_stride 1
+    python compute_maxnorm_truncate.py -op out-test --h 8 9 10   # subset
 """
 import argparse
 import glob
@@ -118,7 +119,12 @@ def curve_color(h, fallback):
 
 def main():
     ap = argparse.ArgumentParser()
-    ap.add_argument("--data_dir", default="Out_data_sweep_glm_embed")
+    ap.add_argument("--output_path", "-op", default="out",
+                    help="same --output_path passed to benchmark_single_attention.py; "
+                         "dumps are read from <output_path>/attn_outputs/<input_source>/")
+    ap.add_argument("--input_source", default="glm_embed",
+                    choices=["random", "glm_embed"],
+                    help="same --input_source passed to benchmark_single_attention.py")
     ap.add_argument("--src_seq", type=int, default=524288,
                     help="seq length of the source outputs")
     ap.add_argument("--h", type=float, nargs="*", default=None,
@@ -126,26 +132,28 @@ def main():
                          "(default: all found)")
     ap.add_argument("--chunk", type=int, default=1024,
                     help="positions loaded per step (memory/speed knob)")
-    ap.add_argument("--out", default="maxnorm_trunc.pdf",
-                    help="output figure (PDF)")
     ap.add_argument("--plot_stride", type=int, default=1024,
                     help="plot every k-th point (computation stays full-res); "
                          "keeps PDFs light (default: 1024)")
     args = ap.parse_args()
+    data_dir = os.path.join(args.output_path, "attn_outputs", args.input_source)
+    figures_dir = os.path.join(args.output_path, "figures")
+    os.makedirs(figures_dir, exist_ok=True)
+    fig_path = os.path.join(figures_dir, f"maxnorm_trunc_{args.input_source}.pdf")
 
-    series = find_approx_files(args.data_dir, args.src_seq)
+    series = find_approx_files(data_dir, args.src_seq)
     if args.h is not None:
         wanted = set(args.h)
         series = [(h, p) for h, p in series if h in wanted]
     if not series:
         raise SystemExit(
             f"No {APPROX_METHOD} dumps found for seq {args.src_seq} under "
-            f"{args.data_dir} (patterns "
+            f"{data_dir} (patterns "
             f"{[p.format(args.src_seq) for p, _, _ in APPROX_PATTERNS]})")
     print("h to overlay:", [h for h, _ in series])
 
     # Load the shared exact reference once.
-    ref_path = os.path.join(args.data_dir, REF_TMPL.format(args.src_seq))
+    ref_path = os.path.join(data_dir, REF_TMPL.format(args.src_seq))
     ref = load_out(ref_path, legacy_layout="bhnd")   # (B, N, H, D)
     N = ref.shape[1]
     assert N == args.src_seq, f"expected N={args.src_seq}, got {N}"
@@ -215,8 +223,8 @@ def main():
     style_x(ax)
     ax.set_xlabel("Token position $n$", fontsize=XLABEL_FONT_SIZE)
     plt.subplots_adjust(left=0.27, right=0.9, top=0.97, bottom=0.2)
-    print(f"Saving figure to {args.out}")
-    plt.savefig(args.out, dpi=300)
+    print(f"Saving figure to {fig_path}")
+    plt.savefig(fig_path, dpi=300)
     plt.close()
 
 

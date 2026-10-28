@@ -13,7 +13,7 @@
 #   SLURM_PARTITION  partition to submit to (default: cluster default)
 #   SLURM_GRES       GPU request (default: gpu:nvidia_rtx_a6000:1)
 #   SLURM_EXCLUDE    comma-separated nodes to exclude (default: none)
-# e.g. SLURM_PARTITION=kilian SLURM_EXCLUDE=nikola-compute-18 ./launch-math500-time.sh out
+# e.g. SLURM_PARTITION=<partition> SLURM_EXCLUDE=<node> ./launch-math500-time.sh out
 #
 # This script can run in two modes:
 # 1. Submission mode (no SLURM_ARRAY_TASK_ID): builds commands, writes to file, submits job array

@@ -101,13 +101,14 @@ python benchmark_single_attention.py -m thinformer_triton --log2_target_cache_si
 done
 ```
 
-2. Plot attention approximation error:
+   Outputs are written to `out-test/attn_outputs/glm_embed/`.
+
+2. Plot attention approximation error (saved to `out-test/figures/maxnorm_trunc_glm_embed.pdf`):
 
 ```bash
-python compute_maxnorm_truncate.py --out maxnorm_trunc_sweep_glm_embed.pdf --plot_stride 1 \
-    --data_dir Out_data_sweep_glm_embed
+python compute_maxnorm_truncate.py -op out-test --input_source glm_embed --plot_stride 1
 # restrict to a subset of h, and thin the plotted points to keep the PDF small
-python compute_maxnorm_truncate.py --data_dir Out_data_sweep_glm_embed --h 8 9 10 --plot_stride 1024
+python compute_maxnorm_truncate.py -op out-test --input_source glm_embed --h 8 9 10 --plot_stride 1024
 ```
 
 ### Reproducing Figure 1d: Unmasked prefill

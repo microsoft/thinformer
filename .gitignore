@@ -173,3 +173,5 @@ cython_debug/
 *checkpoints/
 *out*/
 *logs/
+# attention-output dumps used by examples/prefill/compute_maxnorm_truncate.py (multi-GB)
+Out_data*
