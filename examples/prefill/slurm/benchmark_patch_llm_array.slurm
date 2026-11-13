@@ -5,7 +5,7 @@
 #SBATCH -N 1                                  # Total number of nodes requested
 #SBATCH -n 4                                  # Total number of cores requested
 #SBATCH --get-user-env                        # retrieve the users login environment
-#SBATCH --mem=64GB                            # server memory requested (per node)
+#SBATCH --mem=32GB                            # server memory requested (per node)
 #SBATCH --gres=gpu:nvidia_rtx_a6000:1
 #SBATCH --time=1-00:00:00
 #SBATCH --requeue
@@ -13,22 +13,21 @@
 
 # Script to compute perplexity of the model with layers replaced.
 # Usage:
-# sbatch slurm/benchmark_patch_llm_array.slurm /path/to/output/dir
+# sbatch slurm/benchmark_patch_llm_array.slurm /path/to/output/dir [N_FIRST] [N_LAST]
+# N_FIRST / N_LAST: Express attention sink / sliding-window sizes (default 32 each)
 
 OUTPUT_DIR=$1
+N_FIRST=${2:-32}
+N_LAST=${3:-32}
 
 if [ -z "$OUTPUT_DIR" ]; then
     echo "Error: Output directory not specified"
-    echo "Usage: sbatch slurm/benchmark_patch_llm_array.slurm /path/to/output/dir"
+    echo "Usage: sbatch slurm/benchmark_patch_llm_array.slurm /path/to/output/dir [N_FIRST] [N_LAST]"
     exit 1
 fi
 
 # Create logs directory if it doesn't exist
 mkdir -p logs
-
-# Express attention sink / sliding-window sizes (passed as CLI flags below)
-N_FIRST=32
-N_LAST=32
 echo "N_FIRST: $N_FIRST"
 echo "N_LAST: $N_LAST"
 echo "SLURM_ARRAY_TASK_ID: $SLURM_ARRAY_TASK_ID"
