@@ -267,7 +267,7 @@ def main():
     else:
         data_subset_all = []
         for dataset in dataset_names:
-            data_ = load_dataset('THUDM/LongBench', f"{dataset}", split='test')
+            data_ = load_dataset('THUDM/LongBench', f"{dataset}", split='test', trust_remote_code=True)
 
             # chatglm2's custom ChatGLMTokenizer._pad() doesn't accept the
             # padding_side kwarg that newer transformers passes; override it.

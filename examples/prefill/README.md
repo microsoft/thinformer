@@ -62,16 +62,16 @@ python format_single_attention.py -op OUTPUT_DIR -bs 1 -hs 32 -d 128 -s 1 --spee
 
 ### Reproducing Figure 1b: Masked prefill ($n=32768$)
 
-1. Launch job array for quality:
+1. Launch job array for quality (`32 32` = attention sink size N_FIRST and sliding-window size N_LAST; both default to 32):
 
 ```bash
-sbatch --partition=PARTITION slurm/benchmark_patch_llm_array.slurm OUTPUT_DIR
+sbatch --partition=PARTITION slurm/benchmark_patch_llm_array.slurm OUTPUT_DIR 32 32
 ```
 
-2. Launch job array for timings (`1` = in-network, `32` = sink/window size N_FIRST=N_LAST=32):
+2. Launch job array for timings (`1` = in-network, `32 32` = N_FIRST and N_LAST; N_FIRST defaults to 0 and N_LAST defaults to N_FIRST):
 
 ```bash
-sbatch --partition=PARTITION slurm/benchmark_single_attention_array.slurm OUTPUT_DIR 1 32
+sbatch --partition=PARTITION slurm/benchmark_single_attention_array.slurm OUTPUT_DIR 1 32 32
 ```
 
 3. Plot perplexity and speed-up over exact attention vs. number of layers replaced:

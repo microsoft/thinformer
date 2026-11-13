@@ -5,7 +5,7 @@
 #SBATCH -N 1                                   # Total number of nodes requested
 #SBATCH -n 4                                   # Total number of cores requested
 #SBATCH --get-user-env                         # retrieve the users login environment
-#SBATCH --mem=64GB                             # server memory requested (per node)
+#SBATCH --mem=32GB                             # server memory requested (per node)
 #SBATCH --gres=gpu:nvidia_rtx_a6000:1
 #SBATCH --time=1-00:00:00
 #SBATCH --requeue
@@ -16,26 +16,29 @@
 # as this yields lower numbers overall for thinformer, but weirdly not for hyper-cuda.
 #
 # Usage:
-# sbatch slurm/benchmark_single_attention_array.slurm /path/to/output/dir [in_network] [sink_window]
-# in_network:  0 or 1 (default: 1)
-# sink_window: attention sink / sliding-window size; sets --n_first=--n_last (default: 0).
-#              Pass 32 for the masked prefill (n=32768) experiment.
+# sbatch slurm/benchmark_single_attention_array.slurm /path/to/output/dir [in_network] [n_first] [n_last]
+# in_network: 0 or 1 (default: 1)
+# n_first:    attention sink size, --n_first (default: 0).
+# n_last:     sliding-window size, --n_last (default: same as n_first).
+#             Pass n_first=32 (n_last=32) for the masked prefill (n=32768) experiment.
 
 OUTPUT_DIR=$1
 IN_NETWORK=${2:-1}
-SINK_WINDOW=${3:-0}   # attention sink / sliding-window size; --n_first=--n_last=SINK_WINDOW
+N_FIRST=${3:-0}
+N_LAST=${4:-$N_FIRST}
 
 if [ -z "$OUTPUT_DIR" ]; then
     echo "Error: Output directory not specified"
-    echo "Usage: sbatch slurm/benchmark_single_attention_array.slurm /path/to/output/dir [in_network]"
+    echo "Usage: sbatch slurm/benchmark_single_attention_array.slurm /path/to/output/dir [in_network] [n_first] [n_last]"
     exit 1
 fi
 
 # Create logs directory if it doesn't exist
 mkdir -p logs
 
-# Attention sink / sliding-window size (passed as CLI flags below)
-echo "SINK_WINDOW: $SINK_WINDOW"
+# Attention sink / sliding-window sizes (passed as CLI flags below)
+echo "N_FIRST: $N_FIRST"
+echo "N_LAST: $N_LAST"
 echo "PYTHONPATH: $PYTHONPATH"
 echo "SLURM_ARRAY_TASK_ID: $SLURM_ARRAY_TASK_ID"
 
@@ -71,7 +74,7 @@ conda activate $CONDA_ENV
 echo "Activated conda environment: $CONDA_DEFAULT_ENV"
 
 # Build command
-CMD="python benchmark_single_attention.py -m $METHOD -bs 1 -hs 32 -d 128 -s 1 -op $OUTPUT_DIR --force --n_first $SINK_WINDOW --n_last $SINK_WINDOW"
+CMD="python benchmark_single_attention.py -m $METHOD -bs 1 -hs 32 -d 128 -s 1 -op $OUTPUT_DIR --force --n_first $N_FIRST --n_last $N_LAST"
 
 if [ "$IN_NETWORK" = "1" ]; then
     CMD="$CMD --in_network --time_all"
